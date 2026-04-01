@@ -1,0 +1,33 @@
+## Rider
+.idea/
+*.sln.iml
+
+## VS Code
+.vscode/
+*.code-workspace
+
+## Build
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.cache
+*.vscodext
+
+## Environment
+.env
+.env.local
+!.env.example
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Logs
+logs/
+*.log
+
+## Dependencies
+node_modules/
+packages/
