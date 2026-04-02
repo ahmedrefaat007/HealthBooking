@@ -1,0 +1,33 @@
+syntax = "proto3";
+option csharp_namespace = "HealthBooking.Contracts.Grpc";
+package provider;
+
+service ProviderGrpc {
+  rpc GetSlotById (GetSlotRequest) returns (SlotResponse);
+  rpc LockSlot (LockSlotRequest) returns (LockSlotResponse);
+  rpc ReleaseSlot (ReleaseSlotRequest) returns (ReleaseSlotResponse);
+}
+
+message GetSlotRequest { string slot_id = 1; }
+
+message SlotResponse {
+  string slot_id = 1;
+  string provider_id = 2;
+  string start_time_utc = 3;
+  string end_time_utc = 4;
+  string status = 5;
+}
+
+message LockSlotRequest {
+  string slot_id = 1;
+  string appointment_id = 2;
+}
+
+message LockSlotResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message ReleaseSlotRequest { string slot_id = 1; }
+
+message ReleaseSlotResponse { bool success = 1; }

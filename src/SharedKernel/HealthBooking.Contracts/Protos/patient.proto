@@ -1,0 +1,15 @@
+syntax = "proto3";
+option csharp_namespace = "HealthBooking.Contracts.Grpc";
+package patient;
+
+service PatientGrpc {
+  rpc GetPatientById (GetPatientByIdRequest) returns (PatientResponse);
+}
+
+message GetPatientByIdRequest { string patient_id = 1; }
+
+message PatientResponse {
+  string patient_id = 1;
+  string full_name = 2;
+  string contact_email = 3;
+}
