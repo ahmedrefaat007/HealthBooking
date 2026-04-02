@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\PatientService.Application\PatientService.Application.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\HealthBooking.SharedKernel\HealthBooking.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\HealthBooking.Contracts\HealthBooking.Contracts.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
