@@ -4,6 +4,15 @@
     <ProjectReference Include="..\AppointmentService.Infrastructure\AppointmentService.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="8.*" />
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="8.*" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.*" />
+    <PackageReference Include="MediatR" Version="12.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.*" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.*" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
