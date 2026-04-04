@@ -1,0 +1,125 @@
+openapi: 3.1.0
+info:
+  title: AppointmentService — Lifecycle Contracts
+  description: |
+    New endpoints added in gap-remediation sprint. All routes flow through the API Gateway at
+    http://localhost:5000. JWT bearer token (audience: healthbooking-api) required on all routes.
+  version: "1.1.0"
+
+servers:
+  - url: http://localhost:5000/api/appointments
+    description: API Gateway (local dev)
+
+tags:
+  - name: Reschedule
+    description: Atomic slot-swap reschedule operation
+  - name: Lifecycle
+    description: Appointment state transitions
+
+paths:
+  /{id}/reschedule:
+    put:
+      operationId: RescheduleAppointment
+      tags: [Reschedule]
+      summary: Atomically move an appointment to a new slot
+      description: |
+        Releases the current slot, locks the new slot, updates the appointment record, and publishes
+        `V1_AppointmentRescheduledEvent` via the Outbox. Either all three operations succeed or the
+        old slot is re-locked and a 409 is returned.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Appointment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RescheduleRequest'
+            example:
+              newSlotId: "d1e2f3a4-b5c6-7890-abcd-ef1234567890"
+      responses:
+        "200":
+          description: Reschedule successful
+        "400":
+          description: Validation error (missing fields)
+        "401":
+          description: Missing or invalid JWT
+        "403":
+          description: Caller is not the appointment owner
+        "404":
+          description: Appointment or new slot not found
+        "409":
+          description: New slot is not available (concurrent booking conflict)
+        "503":
+          description: ProviderService gRPC unavailable
+
+  /{id}/confirm:
+    post:
+      operationId: ConfirmAppointment
+      tags: [Lifecycle]
+      summary: Confirm a booked appointment
+      description: Transitions status from Booked → Confirmed. Raises `AppointmentConfirmedDomainEvent`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          description: Confirmed
+        "400":
+          description: Appointment is not in Booked status
+        "401":
+          description: Missing or invalid JWT
+        "404":
+          description: Appointment not found
+
+  /{id}/no-show:
+    post:
+      operationId: MarkNoShow
+      tags: [Lifecycle]
+      summary: Mark a confirmed appointment as no-show
+      description: Transitions status from Confirmed → NoShow. Raises `AppointmentNoShowDomainEvent`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          description: Marked as no-show
+        "400":
+          description: Appointment is not in Confirmed status
+        "401":
+          description: Missing or invalid JWT
+        "404":
+          description: Appointment not found
+
+components:
+  schemas:
+    RescheduleRequest:
+      type: object
+      required: [newSlotId]
+      properties:
+        newSlotId:
+          type: string
+          format: uuid
+          description: ID of the new AvailabilitySlot to book
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by Duende IdentityServer (audience "healthbooking-api")
