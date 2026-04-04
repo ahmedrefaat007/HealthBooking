@@ -49,7 +49,7 @@ public sealed class AvailabilitySlot : AuditableEntity
 
     public void Release()
     {
-        if (Status != SlotStatus.Locked)
+        if (Status is not (SlotStatus.Locked or SlotStatus.Booked))
             throw new InvalidOperationException($"Slot {Id} cannot be released (current status: {Status}).");
 
         Status        = SlotStatus.Available;

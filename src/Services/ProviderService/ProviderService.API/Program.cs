@@ -1,6 +1,7 @@
 using FluentValidation;
 using HealthBooking.SharedKernel.Behaviors;
 using HealthBooking.SharedKernel.Extensions;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using ProviderService.API.Endpoints;
 using ProviderService.API.Grpc;
 using ProviderService.Application.Commands.RegisterProvider;
 using ProviderService.Application.Interfaces;
+using ProviderService.Infrastructure.Messaging.Consumers;
 using ProviderService.Infrastructure.Persistence;
 using ProviderService.Infrastructure.Persistence.Interceptors;
 using ProviderService.Infrastructure.Persistence.Repositories;
@@ -48,6 +50,23 @@ builder.Services.AddStackExchangeRedisCache(opts =>
 });
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
 
+// ── MassTransit (RabbitMQ) ────────────────────────────────────────────────
+builder.Services.AddMassTransit(cfg =>
+{
+    cfg.AddConsumer<AppointmentBookedConsumer>();
+    cfg.AddConsumer<SlotReleasedConsumer>();
+
+    cfg.UsingRabbitMq((ctx, rmq) =>
+    {
+        rmq.Host(builder.Configuration.GetConnectionString("RabbitMq"));
+
+        rmq.UseMessageRetry(r =>
+            r.Exponential(5, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5)));
+
+        rmq.ConfigureEndpoints(ctx);
+    });
+});
+
 // ── MediatR + validation behavior ────────────────────────────────────────
 builder.Services.AddMediatR(cfg =>
 {
@@ -84,6 +103,10 @@ builder.Services.AddHealthChecks()
     .AddRedis(
         builder.Configuration.GetConnectionString("Redis")!,
         name: "redis",
+        tags: ["ready"])
+    .AddRabbitMQ(
+        builder.Configuration.GetConnectionString("RabbitMq")!,
+        name: "rabbitmq",
         tags: ["ready"]);
 
 var app = builder.Build();
