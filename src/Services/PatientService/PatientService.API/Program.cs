@@ -9,6 +9,7 @@ using PatientService.API.Endpoints;
 using PatientService.API.Grpc;
 using PatientService.Application.Commands.RegisterPatient;
 using PatientService.Application.Interfaces;
+using PatientService.Domain.Entities;
 using PatientService.Infrastructure.Clients;
 using PatientService.Infrastructure.Persistence;
 using PatientService.Infrastructure.Persistence.Interceptors;
@@ -25,6 +26,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .Enrich.FromLogContext()
+       .Destructure.ByTransforming<Patient>(p =>
+           new { p.Id, FirstName = "***", LastName = "***", ContactEmail = "***", PhoneNumber = "***" })
        .WriteTo.Console());
 
 // ── Database ──────────────────────────────────────────────────────────────

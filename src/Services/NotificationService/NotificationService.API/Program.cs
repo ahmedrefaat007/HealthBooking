@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Application.Consumers;
 using NotificationService.Application.Interfaces;
+using NotificationService.Domain.Entities;
 using NotificationService.Infrastructure.Clients;
 using NotificationService.Infrastructure.Email;
 using NotificationService.Infrastructure.Persistence;
@@ -19,6 +20,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .Enrich.FromLogContext()
+       .Destructure.ByTransforming<NotificationLog>(n =>
+           new { n.Id, n.CorrelationId, n.EventType, RecipientEmail = "***" })
        .WriteTo.Console());
 
 // ── Database ──────────────────────────────────────────────────────────────

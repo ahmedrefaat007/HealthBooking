@@ -30,6 +30,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .Enrich.FromLogContext()
+       .Destructure.ByTransforming<PatientInfo>(p =>
+           new { p.PatientId, FullName = "***", ContactEmail = "***" })
        .WriteTo.Console());
 
 // ── Database ──────────────────────────────────────────────────────────────
