@@ -45,10 +45,13 @@ builder.Services.AddMassTransit(cfg =>
 {
     cfg.AddConsumer<AppointmentBookedConsumer>();
     cfg.AddConsumer<AppointmentCancelledConsumer>();
+    cfg.AddConsumer<AppointmentRescheduledConsumer>();
 
     cfg.UsingRabbitMq((ctx, rmq) =>
     {
         rmq.Host(builder.Configuration.GetConnectionString("RabbitMq"));
+        rmq.UseMessageRetry(r =>
+            r.Exponential(5, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5)));
         rmq.ConfigureEndpoints(ctx);
     });
 });
