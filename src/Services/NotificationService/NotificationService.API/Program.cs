@@ -53,6 +53,9 @@ builder.Services.AddMassTransit(cfg =>
     });
 });
 
+// ── OpenTelemetry ────────────────────────────────────────────────────────
+builder.Services.AddHealthBookingTelemetry("notification-service", builder.Configuration);
+
 // ── Health checks ─────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks()
     .AddSqlServer(

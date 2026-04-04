@@ -72,6 +72,9 @@ builder.Services.AddAuthorization();
 // ── gRPC ──────────────────────────────────────────────────────────────────
 builder.Services.AddGrpc();
 
+// ── OpenTelemetry ────────────────────────────────────────────────────────
+builder.Services.AddHealthBookingTelemetry("provider-service", builder.Configuration);
+
 // ── Health checks ─────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks()
     .AddSqlServer(

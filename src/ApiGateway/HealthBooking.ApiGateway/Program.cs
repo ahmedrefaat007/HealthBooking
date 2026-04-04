@@ -1,4 +1,5 @@
 using HealthBooking.ApiGateway.Middleware;
+using HealthBooking.SharedKernel.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
@@ -49,6 +50,8 @@ builder.Services.AddRateLimiter(opts =>
 builder.Services
     .AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+
+builder.Services.AddHealthBookingTelemetry("api-gateway", builder.Configuration);
 
 builder.Services
     .AddHealthChecks()

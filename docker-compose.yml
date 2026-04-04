@@ -145,6 +145,173 @@ services:
       retries: 5
       start_period: 10s
 
+  # ── Application services ──────────────────────────────────────────────────────
+
+  identity-server:
+    build:
+      context: .
+      dockerfile: src/IdentityServer/HealthBooking.IdentityServer/Dockerfile
+    environment:
+      ASPNETCORE_URLS: "http://+:5005"
+      ConnectionStrings__IdentityDb: "${IDENTITY_DB_CONNSTRING}"
+      OtelExporter__Endpoint: "${JAEGER_OTLP_ENDPOINT}"
+    ports:
+      - "5005:5005"
+    depends_on:
+      sqlserver-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider",
+             "http://localhost:5005/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  patient-service:
+    build:
+      context: .
+      dockerfile: src/Services/PatientService/PatientService.API/Dockerfile
+    environment:
+      ASPNETCORE_URLS: "http://+:5001"
+      ConnectionStrings__PatientDb: "${PATIENT_DB_CONNSTRING}"
+      ConnectionStrings__RabbitMq: "${RABBITMQ_URL}"
+      GrpcClients__IdentityServer: "http://identity-server:5005"
+      IdentityServer__BaseUrl: "http://identity-server:5005"
+      OtelExporter__Endpoint: "${JAEGER_OTLP_ENDPOINT}"
+    ports:
+      - "5001:5001"
+    depends_on:
+      sqlserver-patient:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      identity-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider",
+             "http://localhost:5001/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  provider-service:
+    build:
+      context: .
+      dockerfile: src/Services/ProviderService/ProviderService.API/Dockerfile
+    environment:
+      ASPNETCORE_URLS: "http://+:5002"
+      ConnectionStrings__ProviderDb: "${PROVIDER_DB_CONNSTRING}"
+      ConnectionStrings__RabbitMq: "${RABBITMQ_URL}"
+      ConnectionStrings__Redis: "${REDIS_URL}"
+      IdentityServer__BaseUrl: "http://identity-server:5005"
+      OtelExporter__Endpoint: "${JAEGER_OTLP_ENDPOINT}"
+    ports:
+      - "5002:5002"
+    depends_on:
+      sqlserver-provider:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      identity-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider",
+             "http://localhost:5002/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  appointment-service:
+    build:
+      context: .
+      dockerfile: src/Services/AppointmentService/AppointmentService.API/Dockerfile
+    environment:
+      ASPNETCORE_URLS: "http://+:5003"
+      ConnectionStrings__AppointmentDb: "${APPOINTMENT_DB_CONNSTRING}"
+      ConnectionStrings__RabbitMq: "${RABBITMQ_URL}"
+      GrpcClients__PatientService: "http://patient-service:5001"
+      GrpcClients__ProviderService: "http://provider-service:5002"
+      IdentityServer__BaseUrl: "http://identity-server:5005"
+      OtelExporter__Endpoint: "${JAEGER_OTLP_ENDPOINT}"
+    ports:
+      - "5003:5003"
+    depends_on:
+      sqlserver-appointment:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+      provider-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider",
+             "http://localhost:5003/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: src/Services/NotificationService/NotificationService.API/Dockerfile
+    environment:
+      ASPNETCORE_URLS: "http://+:5004"
+      ConnectionStrings__NotificationDb: "${NOTIFICATION_DB_CONNSTRING}"
+      ConnectionStrings__RabbitMq: "${RABBITMQ_URL}"
+      GrpcClients__PatientService: "http://patient-service:5001"
+      IdentityServer__BaseUrl: "http://identity-server:5005"
+      OtelExporter__Endpoint: "${JAEGER_OTLP_ENDPOINT}"
+    ports:
+      - "5004:5004"
+    depends_on:
+      sqlserver-notification:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider",
+             "http://localhost:5004/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/HealthBooking.ApiGateway/Dockerfile
+    environment:
+      ASPNETCORE_URLS: "http://+:5000"
+      IdentityServer__Authority: "http://identity-server:5005"
+      OtelExporter__Endpoint: "${JAEGER_OTLP_ENDPOINT}"
+    ports:
+      - "5000:5000"
+    depends_on:
+      patient-service:
+        condition: service_healthy
+      provider-service:
+        condition: service_healthy
+      appointment-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider",
+             "http://localhost:5000/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
 volumes:
   sqlserver-patient-data:
   sqlserver-provider-data:

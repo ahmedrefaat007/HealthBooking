@@ -115,6 +115,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
+// ── OpenTelemetry ────────────────────────────────────────────────────────
+builder.Services.AddHealthBookingTelemetry("appointment-service", builder.Configuration);
+
 // ── Health checks ─────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks()
     .AddSqlServer(

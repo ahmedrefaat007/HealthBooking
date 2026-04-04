@@ -39,9 +39,9 @@ public sealed class RegisterPatientCommandHandlerTests
 
         // Assert
         result.PatientId.Should().NotBeEmpty();
-        await _repo.Received(1).AddAsync(Arg.Is<Patient>(p => p.ContactEmail == cmd.Email), default);
+        await _repo.Received(1).AddAsync(Arg.Is<Patient>(p => p.ContactEmail == cmd.Email.ToLowerInvariant()), default);
         await _repo.Received(1).SaveChangesAsync(default);
-        await _identity.Received(1).ProvisionUserAsync(result.PatientId, cmd.Email, default);
+        await _identity.Received(1).ProvisionUserAsync(result.PatientId, cmd.Email.ToLowerInvariant(), default);
     }
 
     [Fact]
