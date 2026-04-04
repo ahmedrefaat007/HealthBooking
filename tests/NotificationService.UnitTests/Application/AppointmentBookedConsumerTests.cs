@@ -14,14 +14,20 @@ public class AppointmentBookedConsumerTests
 {
     private readonly INotificationLogRepository _repository;
     private readonly IEmailService              _emailService;
+    private readonly IPatientEmailClient        _patientEmailClient;
     private readonly AppointmentBookedConsumer  _sut;
 
     public AppointmentBookedConsumerTests()
     {
-        _repository   = Substitute.For<INotificationLogRepository>();
-        _emailService = Substitute.For<IEmailService>();
-        var logger    = Substitute.For<ILogger<AppointmentBookedConsumer>>();
-        _sut          = new AppointmentBookedConsumer(_repository, _emailService, logger);
+        _repository         = Substitute.For<INotificationLogRepository>();
+        _emailService       = Substitute.For<IEmailService>();
+        _patientEmailClient = Substitute.For<IPatientEmailClient>();
+        var logger          = Substitute.For<ILogger<AppointmentBookedConsumer>>();
+
+        _patientEmailClient.GetPatientEmailAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((string?)null);
+
+        _sut = new AppointmentBookedConsumer(_repository, _emailService, _patientEmailClient, logger);
     }
 
     // ── helper ───────────────────────────────────────────────────────────

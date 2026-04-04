@@ -3,11 +3,13 @@
   <ItemGroup>
     <ProjectReference Include="..\AppointmentService.Domain\AppointmentService.Domain.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\HealthBooking.SharedKernel\HealthBooking.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\HealthBooking.Contracts\HealthBooking.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.*" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+    <PackageReference Include="MassTransit" Version="8.*" />
     <PackageReference Include="MediatR" Version="12.*" />
   </ItemGroup>
 

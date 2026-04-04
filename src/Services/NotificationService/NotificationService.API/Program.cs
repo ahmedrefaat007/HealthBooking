@@ -2,9 +2,12 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Application.Consumers;
 using NotificationService.Application.Interfaces;
+using NotificationService.Infrastructure.Clients;
 using NotificationService.Infrastructure.Email;
 using NotificationService.Infrastructure.Persistence;
 using NotificationService.Infrastructure.Persistence.Repositories;
+using HealthBooking.Contracts.Grpc;
+using HealthBooking.SharedKernel.Extensions;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -27,6 +30,15 @@ builder.Services.AddDbContext<NotificationDbContext>(opts =>
 // ── Repository & email service ────────────────────────────────────────────
 builder.Services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
 builder.Services.AddSingleton<IEmailService, LoggingEmailService>();
+
+// ── gRPC client → PatientService ──────────────────────────────────────────
+builder.Services.AddGrpcClient<PatientGrpc.PatientGrpcClient>(opts =>
+{
+    opts.Address = new Uri(builder.Configuration["GrpcClients:PatientService"]!);
+})
+.AddHealthBookingResiliencePipeline("notification-patient-grpc");
+
+builder.Services.AddScoped<IPatientEmailClient, NotificationPatientGrpcClient>();
 
 // ── MassTransit / RabbitMQ consumers ─────────────────────────────────────
 builder.Services.AddMassTransit(cfg =>

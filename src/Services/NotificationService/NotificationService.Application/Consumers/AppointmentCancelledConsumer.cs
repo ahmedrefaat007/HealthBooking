@@ -12,6 +12,7 @@ namespace NotificationService.Application.Consumers;
 public sealed class AppointmentCancelledConsumer(
     INotificationLogRepository repository,
     IEmailService               emailService,
+    IPatientEmailClient         patientEmailClient,
     ILogger<AppointmentCancelledConsumer> logger)
     : IConsumer<V1_AppointmentCancelledEvent>
 {
@@ -27,13 +28,17 @@ public sealed class AppointmentCancelledConsumer(
             return;
         }
 
+        // Resolve real patient e-mail via gRPC; fall back to placeholder if unavailable
+        var patientEmail = await patientEmailClient.GetPatientEmailAsync(msg.PatientId, context.CancellationToken)
+                           ?? $"patient-{msg.PatientId}@placeholder.local";
+
         var subject = "Your appointment has been cancelled";
         var body    = BuildCancellationEmail(msg);
 
         var log = NotificationLog.Create(
             correlationId  : msg.AppointmentId,
             eventType      : eventType,
-            recipientEmail : $"patient-{msg.PatientId}@placeholder.local",
+            recipientEmail : patientEmail,
             subject        : subject,
             body           : body);
 

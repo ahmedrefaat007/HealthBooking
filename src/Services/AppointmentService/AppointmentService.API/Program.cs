@@ -1,6 +1,8 @@
 using AppointmentService.API.Endpoints;
 using AppointmentService.Application.Commands.BookAppointment;
 using AppointmentService.Application.Interfaces;
+using AppointmentService.Application.Saga;
+using AppointmentService.Application.Saga.Activities;
 using AppointmentService.Infrastructure.BackgroundServices;
 using AppointmentService.Infrastructure.Clients;
 using AppointmentService.Infrastructure.Persistence;
@@ -8,6 +10,7 @@ using AppointmentService.Infrastructure.Persistence.Interceptors;
 using AppointmentService.Infrastructure.Persistence.Repositories;
 using AppointmentService.Infrastructure.Services;
 using FluentValidation;
+using HealthBooking.Contracts.Appointments.V1;
 using HealthBooking.Contracts.Grpc;
 using HealthBooking.SharedKernel.Behaviors;
 using HealthBooking.SharedKernel.Extensions;
@@ -62,13 +65,31 @@ builder.Services.AddScoped<IProviderSlotGrpcClient, ProviderSlotGrpcClient>();
 
 // ── MassTransit / RabbitMQ ────────────────────────────────────────────────
 builder.Services.AddMassTransit(cfg =>
-{
+{    // ── Booking saga ───────────────────────────────────────────────────────
+    cfg.AddSagaStateMachine<BookingStateMachine, BookingState>()
+        .EntityFrameworkRepository(repo =>
+        {
+            repo.ConcurrencyMode = ConcurrencyMode.Optimistic;
+            repo.AddDbContext<DbContext, AppointmentDbContext>((provider, opts) =>
+                opts.UseSqlServer(
+                    builder.Configuration.GetConnectionString("AppointmentDb"),
+                    sql => sql.MigrationsAssembly(
+                        typeof(AppointmentDbContext).Assembly.FullName)));
+        });
+
+    // ── Request client for booking endpoint ───────────────────────────────
+    cfg.AddRequestClient<V1_InitiateBookingCommand>();
     cfg.UsingRabbitMq((ctx, rmq) =>
     {
         rmq.Host(builder.Configuration.GetConnectionString("RabbitMq"));
         rmq.ConfigureEndpoints(ctx);
     });
 });
+
+// ── Saga activity DI (IStateMachineActivity<T,D> resolved as transient) ─────
+builder.Services.AddTransient<VerifyPatientActivity>();
+builder.Services.AddTransient<LockSlotActivity>();
+builder.Services.AddTransient<PersistAppointmentActivity>();
 
 // ── OutboxProcessor ───────────────────────────────────────────────────────
 builder.Services.AddHostedService<OutboxProcessor>();

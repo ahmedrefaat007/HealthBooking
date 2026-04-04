@@ -15,3 +15,12 @@ public interface IEmailService
 {
     Task SendAsync(string to, string subject, string htmlBody, CancellationToken ct = default);
 }
+
+/// <summary>
+/// Fetches the patient's contact e-mail from PatientService via gRPC.
+/// Falls back gracefully when the patient is not found or gRPC is unavailable.
+/// </summary>
+public interface IPatientEmailClient
+{
+    Task<string?> GetPatientEmailAsync(Guid patientId, CancellationToken ct = default);
+}

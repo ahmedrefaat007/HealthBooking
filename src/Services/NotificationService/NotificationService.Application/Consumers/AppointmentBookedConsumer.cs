@@ -14,6 +14,7 @@ namespace NotificationService.Application.Consumers;
 public sealed class AppointmentBookedConsumer(
     INotificationLogRepository repository,
     IEmailService               emailService,
+    IPatientEmailClient         patientEmailClient,
     ILogger<AppointmentBookedConsumer> logger)
     : IConsumer<V1_AppointmentBookedEvent>
 {
@@ -30,13 +31,17 @@ public sealed class AppointmentBookedConsumer(
             return;
         }
 
+        // Resolve real patient e-mail via gRPC; fall back to placeholder if unavailable
+        var patientEmail = await patientEmailClient.GetPatientEmailAsync(msg.PatientId, context.CancellationToken)
+                           ?? $"patient-{msg.PatientId}@placeholder.local";
+
         var subject = "Your appointment has been confirmed";
         var body    = BuildBookingEmail(msg);
 
         var log = NotificationLog.Create(
             correlationId  : msg.AppointmentId,
             eventType      : eventType,
-            recipientEmail : $"patient-{msg.PatientId}@placeholder.local",   // real email fetched in Week 5
+            recipientEmail : patientEmail,
             subject        : subject,
             body           : body);
 
