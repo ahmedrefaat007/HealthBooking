@@ -1,6 +1,7 @@
 using AppointmentService.Application.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 
 namespace AppointmentService.Application.Commands.CancelAppointment;
 
@@ -21,7 +22,8 @@ public sealed class CancelAppointmentCommandValidator : AbstractValidator<Cancel
 
 public sealed class CancelAppointmentCommandHandler(
     IAppointmentRepository  appointments,
-    IProviderSlotGrpcClient slotClient)
+    IProviderSlotGrpcClient slotClient,
+    IConfiguration          configuration)
     : IRequestHandler<CancelAppointmentCommand>
 {
     public async Task Handle(CancelAppointmentCommand request, CancellationToken ct)
@@ -34,6 +36,13 @@ public sealed class CancelAppointmentCommandHandler(
             throw new UnauthorizedAccessException(
                 "You are not authorised to cancel this appointment.");
 
+        // Enforce cancellation notice window
+        var noticeHours = configuration.GetValue<int>("Appointment:CancellationNoticeHours", 2);
+        var noticeDeadline = appointment.ScheduledStartUtc.AddHours(-noticeHours);
+        if (DateTimeOffset.UtcNow >= noticeDeadline)
+            throw new InvalidOperationException(
+                $"Appointment cannot be cancelled within {noticeHours} hour(s) of the scheduled time.");
+
         appointment.Cancel(request.Reason);
 
         // Release the slot so it becomes bookable again
@@ -42,3 +51,4 @@ public sealed class CancelAppointmentCommandHandler(
         await appointments.SaveChangesAsync(ct);
     }
 }
+

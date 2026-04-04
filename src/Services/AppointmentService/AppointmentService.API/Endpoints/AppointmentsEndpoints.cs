@@ -1,4 +1,7 @@
 using AppointmentService.Application.Commands.CancelAppointment;
+using AppointmentService.Application.Commands.ConfirmAppointment;
+using AppointmentService.Application.Commands.MarkNoShow;
+using AppointmentService.Application.Commands.RescheduleAppointment;
 using AppointmentService.Application.Interfaces;
 using AppointmentService.Application.Queries.GetAppointmentById;
 using AppointmentService.Application.Queries.GetPatientAppointments;
@@ -122,9 +125,66 @@ public static class AppointmentsEndpoints
         .WithName("GetPatientAppointments")
         .RequireAuthorization();
 
+        // PUT /api/appointments/{id}/reschedule
+        group.MapPut("/{id:guid}/reschedule", async (
+            Guid            id,
+            RescheduleRequest body,
+            ISender         sender,
+            HttpContext      http,
+            CancellationToken ct) =>
+        {
+            var callerId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(callerId))
+                return Results.Unauthorized();
+
+            await sender.Send(
+                new RescheduleAppointmentCommand(id, body.NewSlotId, callerId), ct);
+
+            return Results.Ok();
+        })
+        .WithName("RescheduleAppointment")
+        .RequireAuthorization();
+
+        // POST /api/appointments/{id}/confirm
+        group.MapPost("/{id:guid}/confirm", async (
+            Guid            id,
+            ISender         sender,
+            HttpContext      http,
+            CancellationToken ct) =>
+        {
+            var callerId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(callerId))
+                return Results.Unauthorized();
+
+            await sender.Send(new ConfirmAppointmentCommand(id, callerId), ct);
+
+            return Results.NoContent();
+        })
+        .WithName("ConfirmAppointment")
+        .RequireAuthorization();
+
+        // POST /api/appointments/{id}/no-show
+        group.MapPost("/{id:guid}/no-show", async (
+            Guid            id,
+            ISender         sender,
+            HttpContext      http,
+            CancellationToken ct) =>
+        {
+            var callerId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(callerId))
+                return Results.Unauthorized();
+
+            await sender.Send(new MarkNoShowCommand(id, callerId), ct);
+
+            return Results.NoContent();
+        })
+        .WithName("MarkNoShow")
+        .RequireAuthorization();
+
         return app;
     }
 }
 
 public sealed record BookAppointmentRequest(Guid SlotId);
 public sealed record CancelRequest(string Reason);
+public sealed record RescheduleRequest(Guid NewSlotId);
