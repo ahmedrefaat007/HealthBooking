@@ -1,0 +1,151 @@
+services:
+
+  identity-server:
+    build:
+      context: .
+      dockerfile: src/IdentityServer/HealthBooking.IdentityServer/Dockerfile
+    environment:
+      ConnectionStrings__IdentityDb: "Server=sqlserver-identity,1433;Database=HealthBooking_Identity;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5005:5005"
+    depends_on:
+      sqlserver-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5005/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  patient-service:
+    build:
+      context: .
+      dockerfile: src/Services/PatientService/PatientService.API/Dockerfile
+    environment:
+      ConnectionStrings__PatientDb: "Server=sqlserver-patient,1433;Database=HealthBooking_Patient;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Username: "${RABBITMQ_USER}"
+      RabbitMQ__Password: "${RABBITMQ_PASS}"
+      IdentityServer__Authority: "http://identity-server:5005"
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5001:5001"
+    depends_on:
+      sqlserver-patient:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      identity-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  provider-service:
+    build:
+      context: .
+      dockerfile: src/Services/ProviderService/ProviderService.API/Dockerfile
+    environment:
+      ConnectionStrings__ProviderDb: "Server=sqlserver-provider,1433;Database=HealthBooking_Provider;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Username: "${RABBITMQ_USER}"
+      RabbitMQ__Password: "${RABBITMQ_PASS}"
+      Redis__ConnectionString: "redis:6379,password=${REDIS_PASSWORD}"
+      IdentityServer__Authority: "http://identity-server:5005"
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5002:5002"
+    depends_on:
+      sqlserver-provider:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      identity-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  appointment-service:
+    build:
+      context: .
+      dockerfile: src/Services/AppointmentService/AppointmentService.API/Dockerfile
+    environment:
+      ConnectionStrings__AppointmentDb: "Server=sqlserver-appointment,1433;Database=HealthBooking_Appointment;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Username: "${RABBITMQ_USER}"
+      RabbitMQ__Password: "${RABBITMQ_PASS}"
+      ProviderService__GrpcUrl: "http://provider-service:5012"
+      PatientService__GrpcUrl: "http://patient-service:5011"
+      IdentityServer__Authority: "http://identity-server:5005"
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5003:5003"
+    depends_on:
+      sqlserver-appointment:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      provider-service:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: src/Services/NotificationService/NotificationService.API/Dockerfile
+    environment:
+      ConnectionStrings__NotificationDb: "Server=sqlserver-notification,1433;Database=HealthBooking_Notification;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Username: "${RABBITMQ_USER}"
+      RabbitMQ__Password: "${RABBITMQ_PASS}"
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5004:5004"
+    depends_on:
+      sqlserver-notification:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5004/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/HealthBooking.ApiGateway/Dockerfile
+    environment:
+      IdentityServer__Authority: "http://identity-server:5005"
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5000:5000"
+    depends_on:
+      identity-server:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+      provider-service:
+        condition: service_healthy
+      appointment-service:
+        condition: service_healthy
