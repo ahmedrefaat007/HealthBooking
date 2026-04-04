@@ -60,7 +60,7 @@ public sealed class BookAppointmentCommandHandlerTests
             Key           = "existing-key",
             AppointmentId = appointmentId
         };
-        var existingAppt = Appointment.Book(Guid.NewGuid(), Guid.NewGuid(), "John Doe");
+        var existingAppt = Appointment.Book(Guid.NewGuid(), Guid.NewGuid(), "John Doe", DateTimeOffset.UtcNow.AddDays(1));
 
         _idempotency.FindAsync("existing-key", Arg.Any<CancellationToken>())
                     .Returns(existingKey);

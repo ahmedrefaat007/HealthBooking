@@ -35,7 +35,7 @@ public sealed class AppointmentPersistenceTests : IAsyncLifetime
         var patientId = Guid.NewGuid();
         var slotId    = Guid.NewGuid();
         var appointment = AppointmentService.Domain.Entities.Appointment.Book(
-            patientId, slotId, "Alice Wonderland");
+            patientId, slotId, "Alice Wonderland", DateTimeOffset.UtcNow.AddDays(1));
 
         // Act
         await _context.Appointments.AddAsync(appointment);
@@ -57,7 +57,7 @@ public sealed class AppointmentPersistenceTests : IAsyncLifetime
         var patientId   = Guid.NewGuid();
         var slotId      = Guid.NewGuid();
         var appointment = AppointmentService.Domain.Entities.Appointment.Book(
-            patientId, slotId, "Bob Brown");
+            patientId, slotId, "Bob Brown", DateTimeOffset.UtcNow.AddDays(1));
 
         await _context.Appointments.AddAsync(appointment);
         await _context.SaveChangesAsync();
@@ -77,7 +77,7 @@ public sealed class AppointmentPersistenceTests : IAsyncLifetime
         var patientId   = Guid.NewGuid();
         var slotId      = Guid.NewGuid();
         var appointment = AppointmentService.Domain.Entities.Appointment.Book(
-            patientId, slotId, "Charlie C");
+            patientId, slotId, "Charlie C", DateTimeOffset.UtcNow.AddDays(1));
 
         await _context.Appointments.AddAsync(appointment);
 

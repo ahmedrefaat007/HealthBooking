@@ -199,7 +199,11 @@ public sealed class BookingActivitiesTests
         idempotency.FindAsync(saga.IdempotencyKey, Arg.Any<CancellationToken>())
             .ReturnsNull();
 
-        var sut = new PersistAppointmentActivity(appointments, idempotency);
+        var slotClient = Substitute.For<IProviderSlotGrpcClient>();
+        slotClient.GetSlotByIdAsync(saga.SlotId, Arg.Any<CancellationToken>())
+            .Returns(new SlotInfo(saga.SlotId, Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(1), DateTimeOffset.UtcNow.AddDays(1).AddMinutes(30), "Locked"));
+
+        var sut = new PersistAppointmentActivity(appointments, idempotency, slotClient);
         await sut.Execute(ctx, next);
 
         saga.AppointmentId.Should().NotBeNull();
@@ -226,7 +230,8 @@ public sealed class BookingActivitiesTests
                 AppointmentId = existingApptId
             });
 
-        var sut = new PersistAppointmentActivity(appointments, idempotency);
+        var slotClient = Substitute.For<IProviderSlotGrpcClient>();
+        var sut = new PersistAppointmentActivity(appointments, idempotency, slotClient);
         await sut.Execute(ctx, next);
 
         saga.AppointmentId.Should().Be(existingApptId);
@@ -242,7 +247,7 @@ public sealed class BookingActivitiesTests
         var faultCtx     = BuildFaultContext(NewSaga(), new Exception("upstream"));
         var next         = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
 
-        var sut = new PersistAppointmentActivity(appointments, idempotency);
+        var sut = new PersistAppointmentActivity(appointments, idempotency, Substitute.For<IProviderSlotGrpcClient>());
         await sut.Faulted(faultCtx, next);
 
         await next.Received(1).Faulted(faultCtx);
