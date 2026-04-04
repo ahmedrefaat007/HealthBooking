@@ -53,11 +53,16 @@ public sealed class BookAppointmentCommandHandler(
             throw new SlotConflictException(
                 $"Slot {request.SlotId} is no longer available.");
 
+        // Step 3b — Fetch slot start time for ScheduledStartUtc
+        var slotInfo = await slotClient.GetSlotByIdAsync(request.SlotId, ct);
+        var scheduledStart = slotInfo?.StartTimeUtc ?? DateTimeOffset.UtcNow;
+
         // Step 4 — Persist appointment + idempotency key atomically
         var appointment = Appointment.Book(
             request.PatientId,
             request.SlotId,
-            patient.FullName);
+            patient.FullName,
+            scheduledStart);
 
         // Align the appointment ID with the one used for locking
         await appointments.AddAsync(appointment, ct);

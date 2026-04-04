@@ -37,6 +37,9 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
         builder.Property(a => a.CancelReason)
             .HasMaxLength(500);
 
+        builder.Property(a => a.ScheduledStartUtc)
+            .IsRequired();
+
         // Audit shadow properties
         builder.Property<DateTimeOffset>("CreatedAt")
             .HasDefaultValueSql("SYSDATETIMEOFFSET()");
@@ -48,6 +51,10 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
 
         builder.HasIndex(a => a.PatientId)
             .HasDatabaseName("IX_Appointments_PatientId");
+
+        builder.HasIndex(a => a.SlotId)
+            .IsUnique()
+            .HasDatabaseName("UQ_Appointments_SlotId");
     }
 }
 

@@ -14,8 +14,9 @@ namespace AppointmentService.Application.Saga.Activities;
 /// LockSlotActivity.Faulted which runs after this in the rollback chain.
 /// </summary>
 public sealed class PersistAppointmentActivity(
-    IAppointmentRepository appointments,
-    IIdempotencyRepository idempotency)
+    IAppointmentRepository  appointments,
+    IIdempotencyRepository  idempotency,
+    IProviderSlotGrpcClient slotClient)
     : IStateMachineActivity<BookingState, V1_InitiateBookingCommand>
 {
     public async Task Execute(
@@ -33,10 +34,15 @@ public sealed class PersistAppointmentActivity(
             return;
         }
 
+        // Fetch slot start time so we can store ScheduledStartUtc on the appointment
+        var slotInfo = await slotClient.GetSlotByIdAsync(context.Saga.SlotId, context.CancellationToken);
+        var scheduledStart = slotInfo?.StartTimeUtc ?? DateTimeOffset.UtcNow;
+
         var appointment = Appointment.Book(
             context.Saga.PatientId,
             context.Saga.SlotId,
-            context.Saga.PatientName!);
+            context.Saga.PatientName!,
+            scheduledStart);
 
         await appointments.AddAsync(appointment, context.CancellationToken);
 

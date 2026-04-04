@@ -1,8 +1,197 @@
-# Tasks: Distributed Healthcare Appointment System
+# Tasks: HealthBooking Gap-Remediation Sprint
 
 **Feature Branch**: `001-distributed-healthcare-system`  
-**Plan Version**: 1.0.0 | **Sprint**: 6 weeks | **Generated**: 2026-04-01  
-**Constitution Version**: 1.0.0
+**Plan Version**: 1.1.0 | **Sprint**: Week 7 Gap-Remediation | **Generated**: 2026-04-04  
+**Constitution Version**: 1.0.0  
+**Plan Source**: `specs/001-distributed-healthcare-system/plan.md`  
+**Target**: 22/37 FRs (59%) → 34/37 FRs (92%)
+
+---
+
+## Label Key
+
+| Label | Scope |
+|---|---|
+| `[DOMAIN]` | Domain entities, aggregates, value objects, domain events |
+| `[APP]` | Application layer — CQRS commands, queries, handlers, validators |
+| `[INFRA]` | Infrastructure — EF Core config, migrations, consumers, MassTransit wiring |
+| `[API]` | API endpoints, Program.cs DI wiring |
+| `[TEST]` | Unit and integration tests |
+| `[OPS]` | CI pipeline, dev ops |
+
+`[P]` — task can be executed in parallel with sibling tasks (different files, no shared state).
+
+---
+
+## Phase 1: Setup (Foundational)
+
+**Purpose**: EF Core schema changes that all story phases depend on — must complete before any command handlers are written.
+
+### Independent Test Criteria
+Run `dotnet ef migrations list` in AppointmentService.Infrastructure — migration `AddScheduledStartAndUniqueSlotId` must appear.
+
+- [ ] T001 [INFRA] Add `ScheduledStartUtc` mapping and `IsUnique` on SlotId in `src/Services/AppointmentService/AppointmentService.Infrastructure/Persistence/Configurations/AppointmentConfiguration.cs`
+- [ ] T002 [INFRA] Run EF Core migration: `dotnet ef migrations add AddScheduledStartAndUniqueSlotId --project AppointmentService.Infrastructure --startup-project AppointmentService.API` in `src/Services/AppointmentService/`
+
+---
+
+## Phase 2: User Story 4 — Appointment Lifecycle Management (FR-015, FR-014, FR-016)
+
+**Story Goal**: A patient or doctor can view, reschedule, or cancel an existing appointment. Confirm and NoShow transitions allow providers to complete the lifecycle.
+
+**Spec Reference**: US4 (P2) — FR-015 (reschedule), FR-014 (2h cancellation window), FR-016 (Confirm, NoShow)
+
+### Independent Test Criteria
+POST `/api/appointments/{id}/reschedule` with a valid new slot → 200 OK; slot released (old) and locked (new) via gRPC.  
+POST `/api/appointments/{id}/confirm` on a Booked appointment → 204; status = Confirmed.  
+POST `/api/appointments/{id}/no-show` on a Confirmed appointment → 204; status = NoShow.  
+DELETE `/api/appointments/{id}` with appointment < 2h away → 400 "cannot cancel within notice window".
+
+### Domain Tasks
+
+- [ ] T003 [DOMAIN] Add `ScheduledStartUtc` property and update `Book(Guid, Guid, string, DateTimeOffset)` signature in `src/Services/AppointmentService/AppointmentService.Domain/Entities/Appointment.cs`
+- [ ] T004 [P] [DOMAIN] Add `AppointmentRescheduledDomainEvent`, `AppointmentConfirmedDomainEvent`, `AppointmentNoShowDomainEvent` to `src/Services/AppointmentService/AppointmentService.Domain/Events/AppointmentEvents.cs`
+- [ ] T005 [DOMAIN] Implement `Reschedule(Guid newSlotId, DateTimeOffset newStart)`, `Confirm()`, `MarkNoShow()` on `Appointment` in `src/Services/AppointmentService/AppointmentService.Domain/Entities/Appointment.cs`
+
+### Infrastructure Tasks
+
+- [ ] T006 [INFRA] Update `PersistAppointmentActivity` to inject `IProviderSlotGrpcClient`, call `GetSlotByIdAsync`, and pass `ScheduledStartUtc` to `Appointment.Book()` in `src/Services/AppointmentService/AppointmentService.Application/Saga/Activities/PersistAppointmentActivity.cs`
+
+### Application Tasks
+
+- [ ] T007 [P] [APP] Create `RescheduleAppointmentCommand` (record + validator + handler: release old slot, lock new slot, call `appointment.Reschedule()`, SaveChanges) in `src/Services/AppointmentService/AppointmentService.Application/Commands/RescheduleAppointment/RescheduleAppointmentCommand.cs`
+- [ ] T008 [P] [APP] Create `ConfirmAppointmentCommand` (record + validator + handler: call `appointment.Confirm()`, SaveChanges) in `src/Services/AppointmentService/AppointmentService.Application/Commands/ConfirmAppointment/ConfirmAppointmentCommand.cs`
+- [ ] T009 [P] [APP] Create `MarkNoShowCommand` (record + validator + handler: call `appointment.MarkNoShow()`, SaveChanges) in `src/Services/AppointmentService/AppointmentService.Application/Commands/MarkNoShow/MarkNoShowCommand.cs`
+- [ ] T010 [APP] Update `CancelAppointmentCommand` handler to reject cancellations within 2h of `ScheduledStartUtc` using `IConfiguration["Appointment:CancellationNoticeHours"]` in `src/Services/AppointmentService/AppointmentService.Application/Commands/CancelAppointment/CancelAppointmentCommand.cs`
+- [ ] T011 [OPS] Add `"Appointment": { "CancellationNoticeHours": 2 }` to `src/Services/AppointmentService/AppointmentService.API/appsettings.json`
+
+### API Tasks
+
+- [ ] T012 [API] Add `PUT /{id}/reschedule`, `POST /{id}/confirm`, `POST /{id}/no-show` endpoints to `src/Services/AppointmentService/AppointmentService.API/Endpoints/AppointmentsEndpoints.cs`
+
+---
+
+## Phase 3: User Story 3 — Booking Conflict Prevention (FR-010)
+
+**Story Goal**: When an appointment is confirmed or rescheduled, ProviderService receives the event and transitions the slot to `Booked` or `Available`. Without these consumers, slots remain `Locked` permanently.
+
+**Spec Reference**: US3 (P1) — FR-010, US4 (P2) — FR-015 (slot release on reschedule)
+
+### Independent Test Criteria
+Publish a `V1_AppointmentBookedEvent` on the bus → `AvailabilitySlot.Status` transitions to `Booked` in ProviderDB.  
+Publish a `V1_SlotReleasedEvent` → slot status transitions to `Available`.
+
+### Infrastructure Tasks (ProviderService)
+
+- [ ] T013 [INFRA] Create folder `src/Services/ProviderService/ProviderService.Infrastructure/Messaging/Consumers/` and implement `AppointmentBookedConsumer` (idempotency guard via `AppointmentId == slot.AppointmentId`, call `slot.Book()`, cache invalidate) in that folder
+- [ ] T014 [P] [INFRA] Implement `SlotReleasedConsumer` (idempotency guard, call `slot.Release()`, cache invalidate) in `src/Services/ProviderService/ProviderService.Infrastructure/Messaging/Consumers/SlotReleasedConsumer.cs`
+- [ ] T015 [API] Wire MassTransit in `src/Services/ProviderService/ProviderService.API/Program.cs`: add `AddMassTransit()` block registering both consumers, RabbitMQ host, `AddRabbitMQ` health check
+
+---
+
+## Phase 4: User Story 5 — Real-Time Notification Delivery (FR-018, FR-020)
+
+**Story Goal**: Notifications are delivered reliably (with retry) for booking, cancellation, AND rescheduling. Messages are never silently dropped on transient failure.
+
+**Spec Reference**: US5 (P2) — FR-018, FR-020
+
+### Independent Test Criteria
+Publish `V1_AppointmentRescheduledEvent` on bus → `AppointmentRescheduledConsumer` creates a `NotificationLog` row.  
+Simulate transient consumer fault → message retried up to 5× before going to error queue.
+
+### Application Tasks (NotificationService)
+
+- [ ] T016 [APP] Create `AppointmentRescheduledConsumer` following `AppointmentBookedConsumer` pattern (idempotency guard, build reschedule email, mark sent/failed) in `src/Services/NotificationService/NotificationService.Application/Consumers/AppointmentRescheduledConsumer.cs`
+- [ ] T017 [API] Register `AppointmentRescheduledConsumer` in `src/Services/NotificationService/NotificationService.API/Program.cs`
+
+### Infrastructure Tasks (Retry Policy)
+
+- [ ] T018 [P] [INFRA] Add `cfg.UseMessageRetry(r => r.Exponential(5, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5)))` inside `UsingRabbitMq` in `src/Services/AppointmentService/AppointmentService.API/Program.cs`
+- [ ] T019 [P] [INFRA] Add same retry policy to `src/Services/NotificationService/NotificationService.API/Program.cs`
+- [ ] T020 [P] [INFRA] Add same retry policy to `src/Services/ProviderService/ProviderService.API/Program.cs` (included as part of MassTransit wiring in T015)
+
+---
+
+## Phase 5: User Story 1 — PII Masking (FR-005, SC-008)
+
+**Story Goal**: No patient PII (name, email, phone) appears in Serilog logs or OpenTelemetry spans. SC-008 requires zero PII in logs/traces.
+
+**Spec Reference**: US1 (P1) — FR-005, SC-008
+
+### Independent Test Criteria
+Log a structured event containing a `PatientInfo` or `PatientResponse` object → masked fields show `***` in console/Seq output.
+
+### API Tasks
+
+- [ ] T021 [P] [API] Add Serilog `Destructure.ByTransforming<PatientInfo>()` masking first/last name and email to `src/Services/PatientService/PatientService.API/Program.cs`
+- [ ] T022 [P] [API] Add same Serilog destructuring for `PatientInfo` to `src/Services/AppointmentService/AppointmentService.API/Program.cs`
+- [ ] T023 [P] [API] Add same Serilog destructuring for `PatientInfo` to `src/Services/NotificationService/NotificationService.API/Program.cs`
+
+---
+
+## Phase 6: User Story 6 — Observability (FR-035, SC-009)
+
+**Story Goal**: CI pipeline enforces ≥80% test coverage and fails the build when coverage drops below the threshold.
+
+**Spec Reference**: US6 (P3) — FR-035, SC-009
+
+### Independent Test Criteria
+Push a commit that drops coverage below 80% → CI build fails with non-zero exit code and coverage report shows threshold breach.
+
+### OPS Tasks
+
+- [ ] T024 [OPS] Add ReportGenerator coverage threshold step to `.github/workflows/ci.yml`: run `reportgenerator` with `-reporttypes:TextSummary` and exit non-zero if line coverage < 80%
+
+---
+
+## Phase 7: Tests
+
+**Purpose**: Validate all new domain methods and command handlers.
+
+### Unit Test Tasks — AppointmentService
+
+- [ ] T025 [P] [TEST] Add `Reschedule_ValidStatus_UpdatesSlotAndRaisesEvent`, `Reschedule_WrongStatus_Throws`, `Confirm_BookedStatus_SetsConfirmed`, `Confirm_WrongStatus_Throws`, `MarkNoShow_ConfirmedStatus_SetsNoShow`, `MarkNoShow_WrongStatus_Throws` to `tests/AppointmentService.UnitTests/Domain/AppointmentAggregateTests.cs`
+- [ ] T026 [P] [TEST] Add `Handle_ValidReschedule_ReleasesOldSlotLocksNewSlot`, `Handle_SlotUnavailable_ThrowsConflict` to `tests/AppointmentService.UnitTests/Application/RescheduleAppointmentCommandHandlerTests.cs` (new file)
+- [ ] T027 [P] [TEST] Add `Handle_ValidCancel_NoticeWindowOk_Succeeds`, `Handle_CancelWithinNoticeWindow_Throws` to `tests/AppointmentService.UnitTests/Application/CancelAppointmentCommandHandlerTests.cs` (new file)
+
+### Unit Test Tasks — NotificationService
+
+- [ ] T028 [P] [TEST] Add `Consume_NewEvent_SendsEmailAndLogsSuccess`, `Consume_DuplicateEvent_SkipsSend` to `tests/NotificationService.UnitTests/AppointmentRescheduledConsumerTests.cs` (new file)
+
+---
+
+## Dependencies
+
+```
+T001 → T002 (migration after config)
+T001 → T003 (ScheduledStartUtc config before Book() update)
+T003 → T005 (entity methods after Book() updated)
+T003 → T007 (reschedule handler needs ScheduledStartUtc)
+T004 → T005 (domain events needed for Reschedule/Confirm/NoShow methods)
+T005 → T006 (PersistAppointmentActivity passes ScheduledStartUtc)
+T007, T008, T009 → T012 (handlers before endpoints)
+T010 → T011 (config key needed by handler)
+T013, T014 → T015 (consumers before Program.cs wiring)
+T016 → T017 (consumer before registration)
+T015 includes T020 (retry in same Program.cs block)
+T025–T028 can execute after their respective implementation tasks
+```
+
+## Parallel Execution
+
+**Phase 2 parallel group**: T004, T007, T008, T009, T021, T022, T023 (all different files)  
+**Phase 3–4 parallel group**: T013, T014, T016, T018, T019 (all different files, no common deps)  
+**Test group**: T025, T026, T027, T028 (all different files)
+
+## Implementation Strategy
+
+**MVP scope (minimum shippable increment)**:  
+Complete Phase 1 + Phase 2 (T001–T012) → Reschedule/Confirm/NoShow working end-to-end.  
+Then Phase 3 (T013–T015) → slots correctly transition via events.  
+Then Phase 4 (T016–T020) → notifications reliable.  
+Then Phase 5–7 (T021–T028) → security + quality gates.
+
+**Format validation**: All tasks follow `- [ ] [TID] [Labels?] Description with file path` ✅
 
 ---
 
