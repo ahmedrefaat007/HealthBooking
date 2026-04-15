@@ -14,7 +14,7 @@ public sealed class AppointmentDbContextFactory : IDesignTimeDbContextFactory<Ap
     {
         var optionsBuilder = new DbContextOptionsBuilder<AppointmentDbContext>();
         optionsBuilder.UseSqlServer(
-            "Server=localhost,1435;Database=AppointmentDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;",
+            "Server=AHMED-REFAAT\\SQLEXPRESS;Database=HealthBooking_Appointment;Integrated Security=True;TrustServerCertificate=True;",
             sql => sql.MigrationsAssembly("AppointmentService.Infrastructure"));
 
         var httpAccessor = new HttpContextAccessor();

@@ -1,6 +1,6 @@
-using Duende.IdentityServer.EntityFramework.DbContexts;
-using Duende.IdentityServer.EntityFramework.Mappers;
+using HealthBooking.IdentityServer.Data;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 
 namespace HealthBooking.IdentityServer;
 
@@ -11,40 +11,28 @@ public static class SeedData
         await using var scope = services.GetRequiredService<IServiceScopeFactory>()
             .CreateAsyncScope();
 
-        var configDb = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-        await configDb.Database.MigrateAsync();
+        // Apply EF migrations on startup
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await db.Database.MigrateAsync();
 
-        var persistedDb = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-        await persistedDb.Database.MigrateAsync();
+        var scopeManager = scope.ServiceProvider
+            .GetRequiredService<IOpenIddictScopeManager>();
 
-        // Seed identity resources
-        foreach (var resource in Config.IdentityResources)
+        // Seed scopes (audience mappings)
+        foreach (var descriptor in Config.Scopes)
         {
-            if (!await configDb.IdentityResources.AnyAsync(r => r.Name == resource.Name))
-                configDb.IdentityResources.Add(resource.ToEntity());
+            if (await scopeManager.FindByNameAsync(descriptor.Name!) is null)
+                await scopeManager.CreateAsync(descriptor);
         }
 
-        // Seed API scopes
-        foreach (var scope2 in Config.ApiScopes)
-        {
-            if (!await configDb.ApiScopes.AnyAsync(s => s.Name == scope2.Name))
-                configDb.ApiScopes.Add(scope2.ToEntity());
-        }
-
-        // Seed API resources
-        foreach (var resource in Config.ApiResources)
-        {
-            if (!await configDb.ApiResources.AnyAsync(r => r.Name == resource.Name))
-                configDb.ApiResources.Add(resource.ToEntity());
-        }
+        var appManager = scope.ServiceProvider
+            .GetRequiredService<IOpenIddictApplicationManager>();
 
         // Seed clients
-        foreach (var client in Config.Clients)
+        foreach (var descriptor in Config.Clients)
         {
-            if (!await configDb.Clients.AnyAsync(c => c.ClientId == client.ClientId))
-                configDb.Clients.Add(client.ToEntity());
+            if (await appManager.FindByClientIdAsync(descriptor.ClientId!) is null)
+                await appManager.CreateAsync(descriptor);
         }
-
-        await configDb.SaveChangesAsync();
     }
 }

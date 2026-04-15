@@ -1,81 +1,115 @@
-using Duende.IdentityServer.Models;
+using OpenIddict.Abstractions;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace HealthBooking.IdentityServer;
 
 public static class Config
 {
-    public static IEnumerable<IdentityResource> IdentityResources =>
+    // ── Scopes → Audiences mapping ────────────────────────────────────────────
+    // Each scope defines which API resource (audience) it grants access to.
+    public static IEnumerable<OpenIddictScopeDescriptor> Scopes =>
     [
-        new IdentityResources.OpenId(),
-        new IdentityResources.Profile(),
-        new IdentityResources.Email()
-    ];
-
-    public static IEnumerable<ApiScope> ApiScopes =>
-    [
-        new ApiScope("healthbooking-api", "HealthBooking API"),
-        new ApiScope("patient:read",  "Read patient data"),
-        new ApiScope("patient:write", "Write patient data"),
-        new ApiScope("provider:read",  "Read provider data"),
-        new ApiScope("provider:write", "Write provider data"),
-        new ApiScope("appointment:read",  "Read appointment data"),
-        new ApiScope("appointment:write", "Write appointment data")
-    ];
-
-    public static IEnumerable<ApiResource> ApiResources =>
-    [
-        new ApiResource("healthbooking-api", "HealthBooking API")
+        new OpenIddictScopeDescriptor
         {
-            Scopes =
-            {
-                "healthbooking-api",
-                "patient:read",  "patient:write",
-                "provider:read", "provider:write",
-                "appointment:read", "appointment:write"
-            }
+            Name      = "healthbooking-api",
+            Resources = { "healthbooking-api" }
+        },
+        new OpenIddictScopeDescriptor
+        {
+            Name      = "patient:read",
+            Resources = { "patient-service" }
+        },
+        new OpenIddictScopeDescriptor
+        {
+            Name      = "patient:write",
+            Resources = { "patient-service" }
+        },
+        new OpenIddictScopeDescriptor
+        {
+            Name      = "provider:read",
+            Resources = { "provider-service" }
+        },
+        new OpenIddictScopeDescriptor
+        {
+            Name      = "provider:write",
+            Resources = { "provider-service" }
+        },
+        new OpenIddictScopeDescriptor
+        {
+            Name      = "appointment:read",
+            Resources = { "appointment-service" }
+        },
+        new OpenIddictScopeDescriptor
+        {
+            Name      = "appointment:write",
+            Resources = { "appointment-service" }
         }
     ];
 
-    public static IEnumerable<Client> Clients =>
+    // ── Clients ───────────────────────────────────────────────────────────────
+    public static IEnumerable<OpenIddictApplicationDescriptor> Clients =>
     [
-        new Client
+        // API Gateway — machine-to-machine
+        new OpenIddictApplicationDescriptor
         {
             ClientId     = "api-gateway",
-            ClientName   = "API Gateway Client",
-            ClientSecrets = { new Secret("api-gateway-secret".Sha256()) },
-            AllowedGrantTypes  = GrantTypes.ClientCredentials,
-            AllowedScopes      = { "healthbooking-api" }
+            ClientSecret = "api-gateway-secret",
+            DisplayName  = "API Gateway",
+            Permissions  =
+            {
+                Permissions.Endpoints.Token,
+                Permissions.GrantTypes.ClientCredentials,
+                Permissions.Prefixes.Scope + "healthbooking-api"
+            }
         },
-        new Client
+
+        // Patient SPA — password flow for end-users
+        new OpenIddictApplicationDescriptor
         {
             ClientId     = "patient-spa",
-            ClientName   = "Patient SPA",
-            ClientSecrets = { new Secret("patient-spa-secret".Sha256()) },
-            AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
-            AllowedScopes     =
+            ClientSecret = "patient-spa-secret",
+            DisplayName  = "Patient SPA",
+            Permissions  =
             {
-                "openid", "profile", "email",
-                "healthbooking-api",
-                "patient:read", "patient:write",
-                "appointment:read", "appointment:write"
-            },
-            AllowOfflineAccess = true
+                Permissions.Endpoints.Token,
+                Permissions.GrantTypes.Password,
+                Permissions.GrantTypes.RefreshToken,
+                Permissions.Prefixes.Scope + "openid",
+                Permissions.Prefixes.Scope + "profile",
+                Permissions.Prefixes.Scope + "email",
+                Permissions.Prefixes.Scope + "offline_access",
+                Permissions.Prefixes.Scope + "healthbooking-api",
+                Permissions.Prefixes.Scope + "patient:read",
+                Permissions.Prefixes.Scope + "patient:write",
+                Permissions.Prefixes.Scope + "appointment:read",
+                Permissions.Prefixes.Scope + "appointment:write"
+            }
         },
-        new Client
+
+        // Admin client — full access password flow
+        new OpenIddictApplicationDescriptor
         {
             ClientId     = "admin-client",
-            ClientName   = "Admin Client",
-            ClientSecrets = { new Secret("admin-client-secret".Sha256()) },
-            AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
-            AllowedScopes     =
+            ClientSecret = "admin-client-secret",
+            DisplayName  = "Admin Client",
+            Permissions  =
             {
-                "openid", "profile", "email",
-                "healthbooking-api",
-                "patient:read", "patient:write",
-                "provider:read", "provider:write",
-                "appointment:read", "appointment:write"
-            },
-            AllowOfflineAccess = true
+                Permissions.Endpoints.Token,
+                Permissions.GrantTypes.Password,
+                Permissions.GrantTypes.ClientCredentials,
+                Permissions.GrantTypes.RefreshToken,
+                Permissions.Prefixes.Scope + "openid",
+                Permissions.Prefixes.Scope + "profile",
+                Permissions.Prefixes.Scope + "email",
+                Permissions.Prefixes.Scope + "offline_access",
+                Permissions.Prefixes.Scope + "healthbooking-api",
+                Permissions.Prefixes.Scope + "patient:read",
+                Permissions.Prefixes.Scope + "patient:write",
+                Permissions.Prefixes.Scope + "provider:read",
+                Permissions.Prefixes.Scope + "provider:write",
+                Permissions.Prefixes.Scope + "appointment:read",
+                Permissions.Prefixes.Scope + "appointment:write"
+            }
         }
     ];
 }

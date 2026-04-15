@@ -1,6 +1,11 @@
 using HealthBooking.IdentityServer;
+using HealthBooking.IdentityServer.Data;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
+using OpenIddict.Server;
 using Serilog;
+using System.Security.Claims;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -18,29 +23,120 @@ builder.Host.UseSerilog((ctx, services, config) =>
 var connString = builder.Configuration.GetConnectionString("IdentityDb")
     ?? throw new InvalidOperationException("ConnectionStrings:IdentityDb is missing.");
 
-var migrationsAssembly = typeof(Program).Assembly.GetName().Name;
+builder.Services.AddDbContext<IdentityDbContext>(opts =>
+    opts.UseSqlServer(connString)
+        .UseOpenIddict());
 
-builder.Services
-    .AddIdentityServer(options =>
+// Inline scope → audience mapping used at token issuance for password flow
+var scopeToResource = new Dictionary<string, string>(StringComparer.Ordinal)
+{
+    ["healthbooking-api"]  = "healthbooking-api",
+    ["patient:read"]       = "patient-service",
+    ["patient:write"]      = "patient-service",
+    ["provider:read"]      = "provider-service",
+    ["provider:write"]     = "provider-service",
+    ["appointment:read"]   = "appointment-service",
+    ["appointment:write"]  = "appointment-service"
+};
+
+// Dev-only user store — replace with a real user service in production
+var devUsers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+{
+    ["admin@healthbooking.com"]   = "Admin123!",
+    ["patient@healthbooking.com"] = "Patient123!"
+};
+
+builder.Services.AddOpenIddict()
+    .AddCore(options =>
     {
-        options.Events.RaiseErrorEvents       = true;
-        options.Events.RaiseInformationEvents = true;
-        options.Events.RaiseFailureEvents     = true;
-        options.Events.RaiseSuccessEvents     = true;
+        options.UseEntityFrameworkCore()
+               .UseDbContext<IdentityDbContext>();
     })
-    .AddConfigurationStore(opts =>
-        opts.ConfigureDbContext = b =>
-            b.UseSqlServer(connString,
-                sql => sql.MigrationsAssembly(migrationsAssembly)))
-    .AddOperationalStore(opts =>
+    .AddServer(options =>
     {
-        opts.ConfigureDbContext = b =>
-            b.UseSqlServer(connString,
-                sql => sql.MigrationsAssembly(migrationsAssembly));
-        opts.EnableTokenCleanup   = true;
-        opts.TokenCleanupInterval = 3600;
+        options.SetTokenEndpointUris("/connect/token");
+
+        options.AllowClientCredentialsFlow();
+        options.AllowPasswordFlow();
+        options.AllowRefreshTokenFlow();
+
+        options.RegisterScopes(
+            "openid", "profile", "email",
+            "healthbooking-api",
+            "patient:read",  "patient:write",
+            "provider:read", "provider:write",
+            "appointment:read", "appointment:write");
+
+        // Custom event handler: handle ALL grant types
+        // (registering a custom handler replaces the built-in one for every flow)
+        options.AddEventHandler<OpenIddictServerEvents.HandleTokenRequestContext>(builder =>
+        {
+            builder.UseInlineHandler(context =>
+            {
+                ClaimsIdentity identity;
+
+                if (context.Request.IsClientCredentialsGrantType())
+                {
+                    // Service-to-service: subject = client_id
+                    identity = new ClaimsIdentity("Bearer");
+                    identity.SetClaim(Claims.Subject, context.Request.ClientId!);
+                    identity.SetClaim(Claims.Name,    context.Request.ClientId!);
+                }
+                else if (context.Request.IsPasswordGrantType())
+                {
+                    if (!devUsers.TryGetValue(context.Request.Username!, out var pwd)
+                        || pwd != context.Request.Password)
+                    {
+                        context.Reject(
+                            error: Errors.InvalidGrant,
+                            description: "Invalid username or password.");
+                        return default;
+                    }
+
+                    identity = new ClaimsIdentity("Bearer");
+                    identity.SetClaim(Claims.Subject, context.Request.Username!);
+                    identity.SetClaim(Claims.Name,    context.Request.Username!);
+                    identity.SetClaim(Claims.Email,   context.Request.Username!);
+                }
+                else
+                {
+                    context.Reject(
+                        error: Errors.UnsupportedGrantType,
+                        description: "The specified grant type is not supported.");
+                    return default;
+                }
+
+                var principal = new ClaimsPrincipal(identity);
+                principal.SetScopes(context.Request.GetScopes());
+
+                var resources = context.Request.GetScopes()
+                    .Select(s => scopeToResource.TryGetValue(s, out var r) ? r : null)
+                    .Where(r => r is not null)
+                    .Distinct()
+                    .Cast<string>()
+                    .ToList();
+                principal.SetResources(resources);
+
+                context.SignIn(principal);
+                return default;
+            });
+        });
+
+        options.AddDevelopmentEncryptionCertificate()
+               .AddDevelopmentSigningCertificate();
+
+        // Allow HTTP in development (no TLS termination locally)
+        options.UseAspNetCore()
+               .DisableTransportSecurityRequirement();
     })
-    .AddDeveloperSigningCredential();
+    .AddValidation(options =>
+    {
+        options.UseLocalServer();
+        options.UseAspNetCore();
+    });
+
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
 
 builder.Services
     .AddHealthChecks()
@@ -51,8 +147,8 @@ var app = builder.Build();
 await SeedData.InitializeAsync(app.Services);
 
 app.UseSerilogRequestLogging();
-
-app.UseIdentityServer();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapHealthChecks("/health/ready");
 app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));

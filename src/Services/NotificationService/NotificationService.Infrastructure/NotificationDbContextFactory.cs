@@ -10,7 +10,7 @@ public sealed class NotificationDbContextFactory
     {
         var options = new DbContextOptionsBuilder<NotificationDbContext>()
             .UseSqlServer(
-                "Server=localhost,1436;Database=NotificationDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;",
+                "Server=AHMED-REFAAT\\SQLEXPRESS;Database=HealthBooking_Notification;Integrated Security=True;TrustServerCertificate=True;",
                 sql => sql.MigrationsAssembly("NotificationService.Infrastructure"))
             .Options;
 
