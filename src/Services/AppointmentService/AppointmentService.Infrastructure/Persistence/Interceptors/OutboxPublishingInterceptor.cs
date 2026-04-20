@@ -26,7 +26,7 @@ public sealed class OutboxPublishingInterceptor : SaveChangesInterceptor
             {
                 var outboxMessage = new OutboxMessage
                 {
-                    EventType           = domainEvent.GetType().FullName!,
+                    EventType           = domainEvent.GetType().AssemblyQualifiedName!,
                     SchemaVersion       = "1.0",
                     Payload             = JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
                     DestinationExchange = domainEvent.GetType().Name

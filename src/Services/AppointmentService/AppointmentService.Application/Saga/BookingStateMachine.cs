@@ -42,12 +42,10 @@ public sealed class BookingStateMachine : MassTransitStateMachine<BookingState>
                 .Activity(x => x.OfType<VerifyPatientActivity>())
                 .Activity(x => x.OfType<LockSlotActivity>())
                 .Activity(x => x.OfType<PersistAppointmentActivity>())
-                .RespondAsync(ctx => ctx.Init<V1_BookingCompletedEvent>(new
-                {
-                    CorrelationId = ctx.Saga.CorrelationId,
-                    AppointmentId = ctx.Saga.AppointmentId!.Value,
-                    CompletedAt   = DateTimeOffset.UtcNow
-                }))
+                .RespondAsync(ctx => Task.FromResult(new V1_BookingCompletedEvent(
+                    ctx.Saga.CorrelationId,
+                    ctx.Saga.AppointmentId!.Value,
+                    DateTimeOffset.UtcNow)))
                 .TransitionTo(Completed)
                 .Catch<Exception>(ex => ex
                     .Then(ctx => ctx.Saga.FailureReason = ctx.Exception.Message)

@@ -8,6 +8,7 @@ using AppointmentService.Application.Queries.GetPatientAppointments;
 using HealthBooking.Contracts.Appointments.V1;
 using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AppointmentService.API.Endpoints;
@@ -96,7 +97,7 @@ public static class AppointmentsEndpoints
         // DELETE /api/appointments/{id}   (cancel)
         group.MapDelete("/{id:guid}", async (
             Guid            id,
-            CancelRequest   body,
+            [FromBody] CancelRequest   body,
             ISender         sender,
             HttpContext      http,
             CancellationToken ct) =>

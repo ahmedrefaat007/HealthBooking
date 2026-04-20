@@ -93,8 +93,12 @@ builder.Services.AddOpenIddict()
                         return default;
                     }
 
+                    // If caller supplies patient_id, use it as the subject (so booking saga can Guid.Parse it).
+                    var subjectId = context.Request["patient_id"]?.ToString()
+                                   ?? context.Request.Username!;
+
                     identity = new ClaimsIdentity("Bearer");
-                    identity.SetClaim(Claims.Subject, context.Request.Username!);
+                    identity.SetClaim(Claims.Subject, subjectId);
                     identity.SetClaim(Claims.Name,    context.Request.Username!);
                     identity.SetClaim(Claims.Email,   context.Request.Username!);
                 }
@@ -124,6 +128,9 @@ builder.Services.AddOpenIddict()
 
         options.AddDevelopmentEncryptionCertificate()
                .AddDevelopmentSigningCertificate();
+
+        // Disable token encryption so backend services can validate with standard JWT Bearer
+        options.DisableAccessTokenEncryption();
 
         // Allow HTTP in development (no TLS termination locally)
         options.UseAspNetCore()
