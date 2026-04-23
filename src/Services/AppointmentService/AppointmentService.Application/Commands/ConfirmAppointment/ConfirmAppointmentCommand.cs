@@ -5,7 +5,7 @@ using MediatR;
 namespace AppointmentService.Application.Commands.ConfirmAppointment;
 
 public sealed record ConfirmAppointmentCommand(
-    Guid   AppointmentId,
+    Guid AppointmentId,
     string CallerUserId) : IRequest;
 
 public sealed class ConfirmAppointmentCommandValidator

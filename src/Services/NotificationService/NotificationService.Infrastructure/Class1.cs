@@ -1,4 +1,4 @@
-﻿namespace NotificationService.Infrastructure;
+namespace NotificationService.Infrastructure;
 
 public class Class1
 {

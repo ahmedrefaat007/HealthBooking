@@ -8,15 +8,15 @@ using Microsoft.EntityFrameworkCore;
 namespace AppointmentService.Infrastructure.Persistence;
 
 public sealed class AppointmentDbContext(
-    DbContextOptions<AppointmentDbContext>  options,
-    AuditInterceptor                        auditInterceptor,
-    OutboxPublishingInterceptor             outboxInterceptor)
+    DbContextOptions<AppointmentDbContext> options,
+    AuditInterceptor auditInterceptor,
+    OutboxPublishingInterceptor outboxInterceptor)
     : DbContext(options)
 {
-    public DbSet<Appointment>           Appointments           => Set<Appointment>();
-    public DbSet<BookingIdempotencyKey> BookingIdempotencyKeys  => Set<BookingIdempotencyKey>();
-    public DbSet<OutboxMessage>         OutboxMessages          => Set<OutboxMessage>();
-    public DbSet<BookingState>          BookingSagaStates       => Set<BookingState>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<BookingIdempotencyKey> BookingIdempotencyKeys => Set<BookingIdempotencyKey>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<BookingState> BookingSagaStates => Set<BookingState>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

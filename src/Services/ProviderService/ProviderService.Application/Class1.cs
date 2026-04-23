@@ -1,4 +1,4 @@
-﻿namespace ProviderService.Application;
+namespace ProviderService.Application;
 
 public class Class1
 {

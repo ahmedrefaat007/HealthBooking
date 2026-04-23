@@ -81,9 +81,9 @@ public sealed class ProviderPersistenceTests : IAsyncLifetime
             .Include(p => p.Slots)
             .FirstAsync(p => p.Id == provider.Id);
 
-        var date      = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var startTime = new TimeOnly(8, 0);
-        var endTime   = new TimeOnly(9, 0);
+        var endTime = new TimeOnly(9, 0);
 
         loaded.DefineDailyAvailability(date, startTime, endTime);
         await _context.SaveChangesAsync();

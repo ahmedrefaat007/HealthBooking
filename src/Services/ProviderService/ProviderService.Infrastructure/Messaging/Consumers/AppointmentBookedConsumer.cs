@@ -10,9 +10,9 @@ namespace ProviderService.Infrastructure.Messaging.Consumers;
 /// Idempotent: if AppointmentId already matches slot.AppointmentId the slot is already Booked.
 /// </summary>
 public sealed class AppointmentBookedConsumer(
-    ISlotRepository                           slots,
-    ICacheService                             cache,
-    ILogger<AppointmentBookedConsumer>        logger)
+    ISlotRepository slots,
+    ICacheService cache,
+    ILogger<AppointmentBookedConsumer> logger)
     : IConsumer<V1_AppointmentBookedEvent>
 {
     public async Task Consume(ConsumeContext<V1_AppointmentBookedEvent> context)

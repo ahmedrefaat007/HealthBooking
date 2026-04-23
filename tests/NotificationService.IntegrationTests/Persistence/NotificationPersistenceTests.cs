@@ -13,7 +13,7 @@ namespace NotificationService.IntegrationTests.Persistence;
 public sealed class NotificationPersistenceTests : IAsyncLifetime
 {
     private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
-    private NotificationDbContext   _db            = default!;
+    private NotificationDbContext _db = default!;
 
     // ── Lifecycle ────────────────────────────────────────────────────────
     public async Task InitializeAsync()
@@ -43,11 +43,11 @@ public sealed class NotificationPersistenceTests : IAsyncLifetime
     {
         var correlationId = Guid.NewGuid();
         var log = NotificationLog.Create(
-            correlationId  : correlationId,
-            eventType      : "V1_AppointmentBookedEvent",
-            recipientEmail : "patient-test@example.com",
-            subject        : "Appointment Confirmed",
-            body           : "<p>Your appointment is booked.</p>");
+            correlationId: correlationId,
+            eventType: "V1_AppointmentBookedEvent",
+            recipientEmail: "patient-test@example.com",
+            subject: "Appointment Confirmed",
+            body: "<p>Your appointment is booked.</p>");
 
         log.MarkSent();
 

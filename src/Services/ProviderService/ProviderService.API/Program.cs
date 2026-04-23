@@ -84,7 +84,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         opts.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = true,
-            ValidAudiences    = ["provider-service"]
+            ValidAudiences = ["provider-service"]
         };
     });
 builder.Services.AddAuthorization();

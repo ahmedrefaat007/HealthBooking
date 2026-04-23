@@ -14,7 +14,7 @@ public sealed class VerifyPatientActivity(IPatientGrpcClient patientClient)
 {
     public async Task Execute(
         BehaviorContext<BookingState, V1_InitiateBookingCommand> context,
-        IBehavior<BookingState, V1_InitiateBookingCommand>       next)
+        IBehavior<BookingState, V1_InitiateBookingCommand> next)
     {
         var patient = await patientClient.GetPatientByIdAsync(
             context.Saga.PatientId, context.CancellationToken)
@@ -28,12 +28,12 @@ public sealed class VerifyPatientActivity(IPatientGrpcClient patientClient)
 
     public async Task Faulted<TException>(
         BehaviorExceptionContext<BookingState, V1_InitiateBookingCommand, TException> context,
-        IBehavior<BookingState, V1_InitiateBookingCommand>                            next)
+        IBehavior<BookingState, V1_InitiateBookingCommand> next)
         where TException : Exception
     {
         await next.Faulted(context); // nothing to compensate
     }
 
     public void Accept(StateMachineVisitor visitor) => visitor.Visit(this);
-    public void Probe(ProbeContext context)         => context.CreateScope("verify-patient");
+    public void Probe(ProbeContext context) => context.CreateScope("verify-patient");
 }

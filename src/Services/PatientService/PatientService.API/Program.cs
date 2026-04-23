@@ -73,7 +73,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         opts.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = true,
-            ValidAudiences    = ["patient-service"]
+            ValidAudiences = ["patient-service"]
         };
     });
 builder.Services.AddAuthorization();

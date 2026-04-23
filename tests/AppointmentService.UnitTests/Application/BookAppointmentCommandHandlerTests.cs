@@ -10,10 +10,10 @@ namespace AppointmentService.UnitTests.Application;
 
 public sealed class BookAppointmentCommandHandlerTests
 {
-    private readonly IAppointmentRepository  _appointments  = Substitute.For<IAppointmentRepository>();
-    private readonly IIdempotencyRepository  _idempotency   = Substitute.For<IIdempotencyRepository>();
-    private readonly IPatientGrpcClient      _patientClient = Substitute.For<IPatientGrpcClient>();
-    private readonly IProviderSlotGrpcClient _slotClient    = Substitute.For<IProviderSlotGrpcClient>();
+    private readonly IAppointmentRepository _appointments = Substitute.For<IAppointmentRepository>();
+    private readonly IIdempotencyRepository _idempotency = Substitute.For<IIdempotencyRepository>();
+    private readonly IPatientGrpcClient _patientClient = Substitute.For<IPatientGrpcClient>();
+    private readonly IProviderSlotGrpcClient _slotClient = Substitute.For<IProviderSlotGrpcClient>();
 
     private readonly Faker _faker = new();
 
@@ -24,9 +24,9 @@ public sealed class BookAppointmentCommandHandlerTests
     public async Task Handle_NewBooking_ReturnsAppointmentDto()
     {
         // Arrange
-        var patientId   = Guid.NewGuid();
-        var slotId      = Guid.NewGuid();
-        var idempKey    = _faker.Random.AlphaNumeric(20);
+        var patientId = Guid.NewGuid();
+        var slotId = Guid.NewGuid();
+        var idempKey = _faker.Random.AlphaNumeric(20);
         var patientInfo = new PatientInfo(patientId, "Jane Doe", "jane@test.com");
 
         _idempotency.FindAsync(idempKey, Arg.Any<CancellationToken>())
@@ -55,9 +55,9 @@ public sealed class BookAppointmentCommandHandlerTests
     {
         // Arrange
         var appointmentId = Guid.NewGuid();
-        var existingKey   = new BookingIdempotencyKey
+        var existingKey = new BookingIdempotencyKey
         {
-            Key           = "existing-key",
+            Key = "existing-key",
             AppointmentId = appointmentId
         };
         var existingAppt = Appointment.Book(Guid.NewGuid(), Guid.NewGuid(), "John Doe", DateTimeOffset.UtcNow.AddDays(1));
@@ -103,9 +103,9 @@ public sealed class BookAppointmentCommandHandlerTests
     public async Task Handle_SlotNotAvailable_ThrowsSlotConflictException()
     {
         // Arrange
-        var patientId   = Guid.NewGuid();
-        var slotId      = Guid.NewGuid();
-        var idempKey    = _faker.Random.AlphaNumeric(20);
+        var patientId = Guid.NewGuid();
+        var slotId = Guid.NewGuid();
+        var idempKey = _faker.Random.AlphaNumeric(20);
         var patientInfo = new PatientInfo(patientId, "Jane Doe", "jane@test.com");
 
         _idempotency.FindAsync(idempKey, Arg.Any<CancellationToken>()).ReturnsNull();

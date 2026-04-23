@@ -1,4 +1,4 @@
-﻿namespace ProviderService.Domain;
+namespace ProviderService.Domain;
 
 public class Class1
 {

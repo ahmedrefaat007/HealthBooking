@@ -1,4 +1,4 @@
-﻿namespace ProviderService.Infrastructure;
+namespace ProviderService.Infrastructure;
 
 public class Class1
 {

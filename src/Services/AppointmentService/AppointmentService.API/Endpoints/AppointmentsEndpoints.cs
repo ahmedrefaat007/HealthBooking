@@ -21,12 +21,12 @@ public static class AppointmentsEndpoints
 
         // POST /api/appointments  — publish booking saga via request/response
         group.MapPost("/", async (
-            BookAppointmentRequest                                          body,
-            IRequestClient<V1_InitiateBookingCommand>                      requestClient,
-            IIdempotencyRepository                                         idempotency,
-            IAppointmentRepository                                         appointments,
-            HttpContext                                                     http,
-            CancellationToken                                              ct) =>
+            BookAppointmentRequest body,
+            IRequestClient<V1_InitiateBookingCommand> requestClient,
+            IIdempotencyRepository idempotency,
+            IAppointmentRepository appointments,
+            HttpContext http,
+            CancellationToken ct) =>
         {
             var patientId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(patientId))
@@ -45,10 +45,10 @@ public static class AppointmentsEndpoints
                     return Results.Ok(new
                     {
                         appointmentId = existingAppt.Id,
-                        patientId     = existingAppt.PatientId,
-                        slotId        = existingAppt.SlotId,
-                        patientName   = existingAppt.PatientName,
-                        status        = existingAppt.Status.ToString()
+                        patientId = existingAppt.PatientId,
+                        slotId = existingAppt.SlotId,
+                        patientName = existingAppt.PatientName,
+                        status = existingAppt.Status.ToString()
                     });
             }
 
@@ -84,8 +84,8 @@ public static class AppointmentsEndpoints
 
         // GET /api/appointments/{id}
         group.MapGet("/{id:guid}", async (
-            Guid            id,
-            ISender         sender,
+            Guid id,
+            ISender sender,
             CancellationToken ct) =>
         {
             var result = await sender.Send(new GetAppointmentByIdQuery(id), ct);
@@ -96,10 +96,10 @@ public static class AppointmentsEndpoints
 
         // DELETE /api/appointments/{id}   (cancel)
         group.MapDelete("/{id:guid}", async (
-            Guid            id,
-            [FromBody] CancelRequest   body,
-            ISender         sender,
-            HttpContext      http,
+            Guid id,
+            [FromBody] CancelRequest body,
+            ISender sender,
+            HttpContext http,
             CancellationToken ct) =>
         {
             var callerId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -116,8 +116,8 @@ public static class AppointmentsEndpoints
 
         // GET /api/appointments/patient/{patientId}
         group.MapGet("/patient/{patientId:guid}", async (
-            Guid            patientId,
-            ISender         sender,
+            Guid patientId,
+            ISender sender,
             CancellationToken ct) =>
         {
             var list = await sender.Send(new GetPatientAppointmentsQuery(patientId), ct);
@@ -128,10 +128,10 @@ public static class AppointmentsEndpoints
 
         // PUT /api/appointments/{id}/reschedule
         group.MapPut("/{id:guid}/reschedule", async (
-            Guid            id,
+            Guid id,
             RescheduleRequest body,
-            ISender         sender,
-            HttpContext      http,
+            ISender sender,
+            HttpContext http,
             CancellationToken ct) =>
         {
             var callerId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -148,9 +148,9 @@ public static class AppointmentsEndpoints
 
         // POST /api/appointments/{id}/confirm
         group.MapPost("/{id:guid}/confirm", async (
-            Guid            id,
-            ISender         sender,
-            HttpContext      http,
+            Guid id,
+            ISender sender,
+            HttpContext http,
             CancellationToken ct) =>
         {
             var callerId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -166,9 +166,9 @@ public static class AppointmentsEndpoints
 
         // POST /api/appointments/{id}/no-show
         group.MapPost("/{id:guid}/no-show", async (
-            Guid            id,
-            ISender         sender,
-            HttpContext      http,
+            Guid id,
+            ISender sender,
+            HttpContext http,
             CancellationToken ct) =>
         {
             var callerId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);

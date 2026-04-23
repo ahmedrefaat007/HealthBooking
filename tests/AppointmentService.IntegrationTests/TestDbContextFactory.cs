@@ -16,9 +16,9 @@ internal static class TestDbContextFactory
             .Options;
 
         var httpAccessor = new HttpContextAccessor();
-        var currentUser  = new CurrentUserService(httpAccessor);
-        var audit        = new AuditInterceptor(currentUser);
-        var outbox       = new OutboxPublishingInterceptor();
+        var currentUser = new CurrentUserService(httpAccessor);
+        var audit = new AuditInterceptor(currentUser);
+        var outbox = new OutboxPublishingInterceptor();
 
         return new AppointmentDbContext(options, audit, outbox);
     }

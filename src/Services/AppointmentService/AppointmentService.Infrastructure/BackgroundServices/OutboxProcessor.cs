@@ -10,8 +10,8 @@ using System.Text.Json;
 namespace AppointmentService.Infrastructure.BackgroundServices;
 
 public sealed class OutboxProcessor(
-    IServiceScopeFactory         scopeFactory,
-    ILogger<OutboxProcessor>     logger)
+    IServiceScopeFactory scopeFactory,
+    ILogger<OutboxProcessor> logger)
     : BackgroundService
 {
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(5);
@@ -45,7 +45,7 @@ public sealed class OutboxProcessor(
     private async Task ProcessBatchAsync(CancellationToken ct)
     {
         using var scope = scopeFactory.CreateScope();
-        var db  = scope.ServiceProvider.GetRequiredService<AppointmentDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<AppointmentDbContext>();
         var bus = scope.ServiceProvider.GetRequiredService<IBus>();
 
         var messages = await db.OutboxMessages
@@ -65,7 +65,7 @@ public sealed class OutboxProcessor(
                 if (eventType is null)
                 {
                     logger.LogWarning("Cannot resolve event type '{EventType}'.", msg.EventType);
-                    msg.Status     = "Failed";
+                    msg.Status = "Failed";
                     msg.RetryCount++;
                     continue;
                 }
@@ -74,14 +74,14 @@ public sealed class OutboxProcessor(
                 if (payload is null)
                 {
                     logger.LogWarning("Cannot deserialize event payload for '{EventType}'.", msg.EventType);
-                    msg.Status     = "Failed";
+                    msg.Status = "Failed";
                     msg.RetryCount++;
                     continue;
                 }
 
                 await bus.Publish(payload, eventType, ct);
 
-                msg.Status      = "Published";
+                msg.Status = "Published";
                 msg.PublishedAt = DateTimeOffset.UtcNow;
 
                 logger.LogDebug("Published outbox message {Id} ({EventType}).", msg.Id, msg.EventType);

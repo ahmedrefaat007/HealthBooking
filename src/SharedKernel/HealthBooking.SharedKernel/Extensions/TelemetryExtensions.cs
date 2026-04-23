@@ -22,8 +22,8 @@ public static class TelemetryExtensions
 {
     public static IServiceCollection AddHealthBookingTelemetry(
         this IServiceCollection services,
-        string                  serviceName,
-        IConfiguration          configuration)
+        string serviceName,
+        IConfiguration configuration)
     {
         var endpoint = configuration["OtelExporter:Endpoint"] ?? "http://localhost:4317";
 

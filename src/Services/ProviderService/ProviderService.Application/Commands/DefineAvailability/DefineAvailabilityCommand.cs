@@ -6,7 +6,7 @@ using ProviderService.Application.Interfaces;
 namespace ProviderService.Application.Commands.DefineAvailability;
 
 public sealed record DefineAvailabilityCommand(
-    Guid    ProviderId,
+    Guid ProviderId,
     DateOnly Date,
     TimeOnly StartTime,
     TimeOnly EndTime) : IRequest<IReadOnlyList<SlotDto>>;

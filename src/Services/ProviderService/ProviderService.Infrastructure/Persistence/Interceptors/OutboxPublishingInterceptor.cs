@@ -26,14 +26,14 @@ public sealed class OutboxPublishingInterceptor : SaveChangesInterceptor
             {
                 var outboxMessage = new OutboxMessage
                 {
-                    EventType           = domainEvent.GetType().FullName!,
-                    SchemaVersion       = "1.0",
-                    Payload             = JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
+                    EventType = domainEvent.GetType().FullName!,
+                    SchemaVersion = "1.0",
+                    Payload = JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
                     DestinationExchange = domainEvent.GetType().Name
                                              .Replace("DomainEvent", "")
                                              .Replace("Event", "")
                                              .ToLowerInvariant(),
-                    CreatedAt           = DateTimeOffset.UtcNow
+                    CreatedAt = DateTimeOffset.UtcNow
                 };
                 context.Set<OutboxMessage>().Add(outboxMessage);
             }

@@ -33,7 +33,7 @@ public sealed class AppointmentPersistenceTests : IAsyncLifetime
     {
         // Arrange
         var patientId = Guid.NewGuid();
-        var slotId    = Guid.NewGuid();
+        var slotId = Guid.NewGuid();
         var appointment = AppointmentService.Domain.Entities.Appointment.Book(
             patientId, slotId, "Alice Wonderland", DateTimeOffset.UtcNow.AddDays(1));
 
@@ -54,8 +54,8 @@ public sealed class AppointmentPersistenceTests : IAsyncLifetime
     [Fact]
     public async Task SaveChanges_WithDomainEvent_WritesOutboxMessage()
     {
-        var patientId   = Guid.NewGuid();
-        var slotId      = Guid.NewGuid();
+        var patientId = Guid.NewGuid();
+        var slotId = Guid.NewGuid();
         var appointment = AppointmentService.Domain.Entities.Appointment.Book(
             patientId, slotId, "Bob Brown", DateTimeOffset.UtcNow.AddDays(1));
 
@@ -74,8 +74,8 @@ public sealed class AppointmentPersistenceTests : IAsyncLifetime
     public async Task DoubleBooking_SameIdempotencyKey_ReturnsSameAppointment()
     {
         // Arrange
-        var patientId   = Guid.NewGuid();
-        var slotId      = Guid.NewGuid();
+        var patientId = Guid.NewGuid();
+        var slotId = Guid.NewGuid();
         var appointment = AppointmentService.Domain.Entities.Appointment.Book(
             patientId, slotId, "Charlie C", DateTimeOffset.UtcNow.AddDays(1));
 
@@ -83,7 +83,7 @@ public sealed class AppointmentPersistenceTests : IAsyncLifetime
 
         var key = new AppointmentService.Domain.Entities.BookingIdempotencyKey
         {
-            Key           = "test-idempotency-key-001",
+            Key = "test-idempotency-key-001",
             AppointmentId = appointment.Id
         };
         await _context.BookingIdempotencyKeys.AddAsync(key);
@@ -92,7 +92,7 @@ public sealed class AppointmentPersistenceTests : IAsyncLifetime
         // Act — attempt to insert duplicate key
         var duplicateKey = new AppointmentService.Domain.Entities.BookingIdempotencyKey
         {
-            Key           = "test-idempotency-key-001",
+            Key = "test-idempotency-key-001",
             AppointmentId = Guid.NewGuid()
         };
         _context.BookingIdempotencyKeys.Add(duplicateKey);

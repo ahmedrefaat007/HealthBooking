@@ -21,9 +21,9 @@ public sealed class RegisterPatientCommandHandlerTests
     }
 
     private static RegisterPatientCommand ValidCommand() => new(
-        FirstName:   _faker.Name.FirstName(),
-        LastName:    _faker.Name.LastName(),
-        Email:       _faker.Internet.Email(),
+        FirstName: _faker.Name.FirstName(),
+        LastName: _faker.Name.LastName(),
+        Email: _faker.Internet.Email(),
         PhoneNumber: "+447911123456",
         DateOfBirth: DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)));
 

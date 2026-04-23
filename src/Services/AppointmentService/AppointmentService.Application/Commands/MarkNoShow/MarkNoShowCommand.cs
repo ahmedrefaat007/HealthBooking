@@ -5,7 +5,7 @@ using MediatR;
 namespace AppointmentService.Application.Commands.MarkNoShow;
 
 public sealed record MarkNoShowCommand(
-    Guid   AppointmentId,
+    Guid AppointmentId,
     string CallerUserId) : IRequest;
 
 public sealed class MarkNoShowCommandValidator

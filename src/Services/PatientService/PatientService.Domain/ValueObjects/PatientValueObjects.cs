@@ -48,7 +48,7 @@ public sealed record PhoneNumber
 public sealed record FullName
 {
     public string FirstName { get; }
-    public string LastName  { get; }
+    public string LastName { get; }
 
     public FullName(string firstName, string lastName)
     {
@@ -58,7 +58,7 @@ public sealed record FullName
             throw new ArgumentException("Last name cannot be empty.", nameof(lastName));
 
         FirstName = firstName.Trim();
-        LastName  = lastName.Trim();
+        LastName = lastName.Trim();
     }
 
     public string Full => $"{FirstName} {LastName}";

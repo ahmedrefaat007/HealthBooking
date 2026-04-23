@@ -17,9 +17,9 @@ public sealed class PatientDbContextFactory : IDesignTimeDbContextFactory<Patien
             sql => sql.MigrationsAssembly("PatientService.Infrastructure"));
 
         var httpAccessor = new HttpContextAccessor();
-        var currentUser  = new CurrentUserService(httpAccessor);
-        var audit        = new AuditInterceptor(currentUser);
-        var outbox       = new OutboxPublishingInterceptor();
+        var currentUser = new CurrentUserService(httpAccessor);
+        var audit = new AuditInterceptor(currentUser);
+        var outbox = new OutboxPublishingInterceptor();
 
         return new PatientDbContext(optionsBuilder.Options, audit, outbox);
     }

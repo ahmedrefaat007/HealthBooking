@@ -22,10 +22,10 @@ public class AuthSmokeTests
     {
         var form = new Dictionary<string, string>
         {
-            ["grant_type"]    = "client_credentials",
-            ["client_id"]     = "api-gateway",
+            ["grant_type"] = "client_credentials",
+            ["client_id"] = "api-gateway",
             ["client_secret"] = "api-gateway-secret",
-            ["scope"]         = "healthbooking-api"
+            ["scope"] = "healthbooking-api"
         };
 
         var response = await _http.PostAsync(
@@ -65,10 +65,10 @@ public class AuthSmokeTests
     {
         var form = new Dictionary<string, string>
         {
-            ["grant_type"]    = "client_credentials",
-            ["client_id"]     = "api-gateway",
+            ["grant_type"] = "client_credentials",
+            ["client_id"] = "api-gateway",
             ["client_secret"] = "api-gateway-secret",
-            ["scope"]         = "healthbooking-api"
+            ["scope"] = "healthbooking-api"
         };
 
         var response = await _http.PostAsync(

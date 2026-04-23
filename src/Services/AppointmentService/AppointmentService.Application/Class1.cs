@@ -1,4 +1,4 @@
-﻿namespace AppointmentService.Application;
+namespace AppointmentService.Application;
 
 public class Class1
 {

@@ -37,13 +37,13 @@ public interface ICurrentUserService
 // ── DTOs used across application interfaces ──────────────────────────────────
 
 public sealed record PatientInfo(
-    Guid   PatientId,
+    Guid PatientId,
     string FullName,
     string ContactEmail);
 
 public sealed record SlotInfo(
-    Guid           SlotId,
-    Guid           ProviderId,
+    Guid SlotId,
+    Guid ProviderId,
     DateTimeOffset StartTimeUtc,
     DateTimeOffset EndTimeUtc,
-    string         Status);
+    string Status);

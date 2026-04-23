@@ -7,8 +7,8 @@ using MediatR;
 namespace AppointmentService.Application.Commands.BookAppointment;
 
 public sealed record BookAppointmentCommand(
-    Guid   PatientId,
-    Guid   SlotId,
+    Guid PatientId,
+    Guid SlotId,
     string IdempotencyKey) : IRequest<AppointmentDto>;
 
 public sealed class BookAppointmentCommandValidator : AbstractValidator<BookAppointmentCommand>
@@ -22,10 +22,10 @@ public sealed class BookAppointmentCommandValidator : AbstractValidator<BookAppo
 }
 
 public sealed class BookAppointmentCommandHandler(
-    IAppointmentRepository     appointments,
-    IIdempotencyRepository     idempotency,
-    IPatientGrpcClient         patientClient,
-    IProviderSlotGrpcClient    slotClient)
+    IAppointmentRepository appointments,
+    IIdempotencyRepository idempotency,
+    IPatientGrpcClient patientClient,
+    IProviderSlotGrpcClient slotClient)
     : IRequestHandler<BookAppointmentCommand, AppointmentDto>
 {
     public async Task<AppointmentDto> Handle(
@@ -69,7 +69,7 @@ public sealed class BookAppointmentCommandHandler(
 
         var key = new BookingIdempotencyKey
         {
-            Key           = request.IdempotencyKey,
+            Key = request.IdempotencyKey,
             AppointmentId = appointment.Id
         };
         await idempotency.AddAsync(key, ct);

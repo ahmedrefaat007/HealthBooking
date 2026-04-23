@@ -14,8 +14,8 @@ public sealed class AppointmentAggregateTests
     [Fact]
     public void Book_ValidArgs_SetsPropertiesAndRaisesEvent()
     {
-        var patientId  = Guid.NewGuid();
-        var slotId     = Guid.NewGuid();
+        var patientId = Guid.NewGuid();
+        var slotId = Guid.NewGuid();
 
         var appt = Appointment.Book(patientId, slotId, "Alice Smith", _start);
 
@@ -92,9 +92,9 @@ public sealed class AppointmentAggregateTests
     [Fact]
     public void Reschedule_BookedAppointment_UpdatesSlotAndRaisesEvent()
     {
-        var appt        = Appointment.Book(Guid.NewGuid(), Guid.NewGuid(), "Dave", _start);
-        var newSlotId   = Guid.NewGuid();
-        var newStart    = _start.AddDays(2);
+        var appt = Appointment.Book(Guid.NewGuid(), Guid.NewGuid(), "Dave", _start);
+        var newSlotId = Guid.NewGuid();
+        var newStart = _start.AddDays(2);
         appt.ClearDomainEvents();
 
         appt.Reschedule(newSlotId, newStart);

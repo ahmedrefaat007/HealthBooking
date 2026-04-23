@@ -13,8 +13,8 @@ public sealed class AuditInterceptor(ICurrentUserService currentUser)
         CancellationToken ct = default)
     {
         var context = eventData.Context!;
-        var now     = DateTimeOffset.UtcNow;
-        var userId  = currentUser.UserId ?? "system";
+        var now = DateTimeOffset.UtcNow;
+        var userId = currentUser.UserId ?? "system";
 
         foreach (var entry in context.ChangeTracker.Entries<AuditableEntity>())
         {

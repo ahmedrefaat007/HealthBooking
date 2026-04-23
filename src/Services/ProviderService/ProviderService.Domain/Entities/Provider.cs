@@ -7,9 +7,9 @@ namespace ProviderService.Domain.Entities;
 
 public sealed class Provider : AggregateRoot
 {
-    public Guid   Id        { get; private set; }
+    public Guid Id { get; private set; }
     public string FirstName { get; private set; } = default!;
-    public string LastName  { get; private set; } = default!;
+    public string LastName { get; private set; } = default!;
     public string Specialty { get; private set; } = default!;
     public string LicenseNumber { get; private set; } = default!;
 
@@ -28,10 +28,10 @@ public sealed class Provider : AggregateRoot
 
         var provider = new Provider
         {
-            Id            = Guid.NewGuid(),
-            FirstName     = firstName.Trim(),
-            LastName      = lastName.Trim(),
-            Specialty     = specialty.Trim(),
+            Id = Guid.NewGuid(),
+            FirstName = firstName.Trim(),
+            LastName = lastName.Trim(),
+            Specialty = specialty.Trim(),
             LicenseNumber = licenseNumber.Trim()
         };
 

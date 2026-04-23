@@ -14,14 +14,14 @@ namespace AppointmentService.Application.Saga.Activities;
 /// LockSlotActivity.Faulted which runs after this in the rollback chain.
 /// </summary>
 public sealed class PersistAppointmentActivity(
-    IAppointmentRepository  appointments,
-    IIdempotencyRepository  idempotency,
+    IAppointmentRepository appointments,
+    IIdempotencyRepository idempotency,
     IProviderSlotGrpcClient slotClient)
     : IStateMachineActivity<BookingState, V1_InitiateBookingCommand>
 {
     public async Task Execute(
         BehaviorContext<BookingState, V1_InitiateBookingCommand> context,
-        IBehavior<BookingState, V1_InitiateBookingCommand>       next)
+        IBehavior<BookingState, V1_InitiateBookingCommand> next)
     {
         // Idempotency: return existing appointment if key already used
         var existing = await idempotency.FindAsync(
@@ -48,7 +48,7 @@ public sealed class PersistAppointmentActivity(
 
         var key = new BookingIdempotencyKey
         {
-            Key           = context.Saga.IdempotencyKey,
+            Key = context.Saga.IdempotencyKey,
             AppointmentId = appointment.Id
         };
         await idempotency.AddAsync(key, context.CancellationToken);
@@ -61,12 +61,12 @@ public sealed class PersistAppointmentActivity(
 
     public async Task Faulted<TException>(
         BehaviorExceptionContext<BookingState, V1_InitiateBookingCommand, TException> context,
-        IBehavior<BookingState, V1_InitiateBookingCommand>                            next)
+        IBehavior<BookingState, V1_InitiateBookingCommand> next)
         where TException : Exception
     {
         await next.Faulted(context); // slot compensation handled by LockSlotActivity.Faulted
     }
 
     public void Accept(StateMachineVisitor visitor) => visitor.Visit(this);
-    public void Probe(ProbeContext context)         => context.CreateScope("persist-appointment");
+    public void Probe(ProbeContext context) => context.CreateScope("persist-appointment");
 }

@@ -17,9 +17,9 @@ public sealed class ProviderDbContextFactory : IDesignTimeDbContextFactory<Provi
             sql => sql.MigrationsAssembly("ProviderService.Infrastructure"));
 
         var httpAccessor = new HttpContextAccessor();
-        var currentUser  = new CurrentUserService(httpAccessor);
-        var audit        = new AuditInterceptor(currentUser);
-        var outbox       = new OutboxPublishingInterceptor();
+        var currentUser = new CurrentUserService(httpAccessor);
+        var audit = new AuditInterceptor(currentUser);
+        var outbox = new OutboxPublishingInterceptor();
 
         return new ProviderDbContext(optionsBuilder.Options, audit, outbox);
     }

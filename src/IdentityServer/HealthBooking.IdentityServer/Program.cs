@@ -30,19 +30,19 @@ builder.Services.AddDbContext<IdentityDbContext>(opts =>
 // Inline scope → audience mapping used at token issuance for password flow
 var scopeToResource = new Dictionary<string, string>(StringComparer.Ordinal)
 {
-    ["healthbooking-api"]  = "healthbooking-api",
-    ["patient:read"]       = "patient-service",
-    ["patient:write"]      = "patient-service",
-    ["provider:read"]      = "provider-service",
-    ["provider:write"]     = "provider-service",
-    ["appointment:read"]   = "appointment-service",
-    ["appointment:write"]  = "appointment-service"
+    ["healthbooking-api"] = "healthbooking-api",
+    ["patient:read"] = "patient-service",
+    ["patient:write"] = "patient-service",
+    ["provider:read"] = "provider-service",
+    ["provider:write"] = "provider-service",
+    ["appointment:read"] = "appointment-service",
+    ["appointment:write"] = "appointment-service"
 };
 
 // Dev-only user store — replace with a real user service in production
 var devUsers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 {
-    ["admin@healthbooking.com"]   = "Admin123!",
+    ["admin@healthbooking.com"] = "Admin123!",
     ["patient@healthbooking.com"] = "Patient123!"
 };
 
@@ -63,7 +63,7 @@ builder.Services.AddOpenIddict()
         options.RegisterScopes(
             "openid", "profile", "email",
             "healthbooking-api",
-            "patient:read",  "patient:write",
+            "patient:read", "patient:write",
             "provider:read", "provider:write",
             "appointment:read", "appointment:write");
 
@@ -80,7 +80,7 @@ builder.Services.AddOpenIddict()
                     // Service-to-service: subject = client_id
                     identity = new ClaimsIdentity("Bearer");
                     identity.SetClaim(Claims.Subject, context.Request.ClientId!);
-                    identity.SetClaim(Claims.Name,    context.Request.ClientId!);
+                    identity.SetClaim(Claims.Name, context.Request.ClientId!);
                 }
                 else if (context.Request.IsPasswordGrantType())
                 {
@@ -99,8 +99,8 @@ builder.Services.AddOpenIddict()
 
                     identity = new ClaimsIdentity("Bearer");
                     identity.SetClaim(Claims.Subject, subjectId);
-                    identity.SetClaim(Claims.Name,    context.Request.Username!);
-                    identity.SetClaim(Claims.Email,   context.Request.Username!);
+                    identity.SetClaim(Claims.Name, context.Request.Username!);
+                    identity.SetClaim(Claims.Email, context.Request.Username!);
                 }
                 else
                 {

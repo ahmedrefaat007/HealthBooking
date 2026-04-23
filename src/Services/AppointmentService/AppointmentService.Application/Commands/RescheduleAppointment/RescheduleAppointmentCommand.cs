@@ -6,8 +6,8 @@ using MediatR;
 namespace AppointmentService.Application.Commands.RescheduleAppointment;
 
 public sealed record RescheduleAppointmentCommand(
-    Guid   AppointmentId,
-    Guid   NewSlotId,
+    Guid AppointmentId,
+    Guid NewSlotId,
     string CallerUserId) : IRequest;
 
 public sealed class RescheduleAppointmentCommandValidator
@@ -22,7 +22,7 @@ public sealed class RescheduleAppointmentCommandValidator
 }
 
 public sealed class RescheduleAppointmentCommandHandler(
-    IAppointmentRepository  appointments,
+    IAppointmentRepository appointments,
     IProviderSlotGrpcClient slotClient)
     : IRequestHandler<RescheduleAppointmentCommand>
 {

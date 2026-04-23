@@ -26,7 +26,7 @@ builder.Services
     .AddJwtBearer(options =>
     {
         options.Authority = identityUrl;
-        options.Audience  = "healthbooking-api";
+        options.Audience = "healthbooking-api";
         options.RequireHttpsMetadata = false;
     });
 
@@ -36,15 +36,24 @@ builder.Services.AddAuthorization(opts =>
         policy.RequireAuthenticatedUser());
 });
 
+// CORS — allow Angular development server
+builder.Services.AddCors(opts =>
+    opts.AddPolicy("angular-dev", policy =>
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()));
+
 // Rate limiter — sliding window 300 req/min
 builder.Services.AddRateLimiter(opts =>
     opts.AddSlidingWindowLimiter("gateway", limiterOpts =>
     {
-        limiterOpts.PermitLimit       = 300;
-        limiterOpts.Window            = TimeSpan.FromMinutes(1);
+        limiterOpts.PermitLimit = 300;
+        limiterOpts.Window = TimeSpan.FromMinutes(1);
         limiterOpts.SegmentsPerWindow = 6;
         limiterOpts.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        limiterOpts.QueueLimit        = 0;
+        limiterOpts.QueueLimit = 0;
     }));
 
 builder.Services
@@ -61,6 +70,7 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseCors("angular-dev");
 app.UseRateLimiter();
 
 app.UseAuthentication();

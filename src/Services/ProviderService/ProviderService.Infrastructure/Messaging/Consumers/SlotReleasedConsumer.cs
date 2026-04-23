@@ -12,9 +12,9 @@ namespace ProviderService.Infrastructure.Messaging.Consumers;
 /// Idempotent: if slot is already Available, the no-op guard skips the operation.
 /// </summary>
 public sealed class SlotReleasedConsumer(
-    ISlotRepository                    slots,
-    ICacheService                      cache,
-    ILogger<SlotReleasedConsumer>      logger)
+    ISlotRepository slots,
+    ICacheService cache,
+    ILogger<SlotReleasedConsumer> logger)
     : IConsumer<V1_SlotReleasedEvent>
 {
     public async Task Consume(ConsumeContext<V1_SlotReleasedEvent> context)

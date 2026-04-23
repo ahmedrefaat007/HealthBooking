@@ -12,10 +12,10 @@ namespace NotificationService.Application.Consumers;
 /// Idempotent: skips if a log entry already exists for (AppointmentId, EventType).
 /// </summary>
 public sealed class AppointmentRescheduledConsumer(
-    INotificationLogRepository                   repository,
-    IEmailService                                 emailService,
-    IPatientEmailClient                           patientEmailClient,
-    ILogger<AppointmentRescheduledConsumer>       logger)
+    INotificationLogRepository repository,
+    IEmailService emailService,
+    IPatientEmailClient patientEmailClient,
+    ILogger<AppointmentRescheduledConsumer> logger)
     : IConsumer<V1_AppointmentRescheduledEvent>
 {
     public async Task Consume(ConsumeContext<V1_AppointmentRescheduledEvent> context)
@@ -35,14 +35,14 @@ public sealed class AppointmentRescheduledConsumer(
                            ?? $"patient-{msg.PatientId}@placeholder.local";
 
         var subject = "Your appointment has been rescheduled";
-        var body    = BuildRescheduleEmail(msg);
+        var body = BuildRescheduleEmail(msg);
 
         var log = NotificationLog.Create(
-            correlationId  : msg.AppointmentId,
-            eventType      : eventType,
-            recipientEmail : patientEmail,
-            subject        : subject,
-            body           : body);
+            correlationId: msg.AppointmentId,
+            eventType: eventType,
+            recipientEmail: patientEmail,
+            subject: subject,
+            body: body);
 
         try
         {

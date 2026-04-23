@@ -38,7 +38,7 @@ public sealed class ProviderSlotGrpcClient(ProviderGrpc.ProviderGrpcClient grpcC
             var response = await grpcClient.LockSlotAsync(
                 new LockSlotRequest
                 {
-                    SlotId        = slotId.ToString(),
+                    SlotId = slotId.ToString(),
                     AppointmentId = appointmentId.ToString()
                 },
                 cancellationToken: ct);

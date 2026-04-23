@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 namespace AppointmentService.Application.Commands.CancelAppointment;
 
 public sealed record CancelAppointmentCommand(
-    Guid   AppointmentId,
+    Guid AppointmentId,
     string Reason,
     string CallerUserId) : IRequest;
 
@@ -21,9 +21,9 @@ public sealed class CancelAppointmentCommandValidator : AbstractValidator<Cancel
 }
 
 public sealed class CancelAppointmentCommandHandler(
-    IAppointmentRepository  appointments,
+    IAppointmentRepository appointments,
     IProviderSlotGrpcClient slotClient,
-    IConfiguration          configuration)
+    IConfiguration configuration)
     : IRequestHandler<CancelAppointmentCommand>
 {
     public async Task Handle(CancelAppointmentCommand request, CancellationToken ct)

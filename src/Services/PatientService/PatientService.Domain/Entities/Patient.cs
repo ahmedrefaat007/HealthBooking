@@ -6,12 +6,12 @@ namespace PatientService.Domain.Entities;
 
 public sealed class Patient : AggregateRoot
 {
-    public Guid    Id              { get; private set; }
-    public string  FirstName       { get; private set; } = default!;
-    public string  LastName        { get; private set; } = default!;
-    public string  ContactEmail    { get; private set; } = default!;
-    public string  PhoneNumber     { get; private set; } = default!;
-    public DateOnly DateOfBirth    { get; private set; }
+    public Guid Id { get; private set; }
+    public string FirstName { get; private set; } = default!;
+    public string LastName { get; private set; } = default!;
+    public string ContactEmail { get; private set; } = default!;
+    public string PhoneNumber { get; private set; } = default!;
+    public DateOnly DateOfBirth { get; private set; }
     public DateTimeOffset RegistrationDate { get; private set; }
 
     // EF Core private constructor
@@ -24,8 +24,8 @@ public sealed class Patient : AggregateRoot
         string phoneNumber,
         DateOnly dateOfBirth)
     {
-        var name  = new FullName(firstName, lastName);
-        var mail  = new Email(email);
+        var name = new FullName(firstName, lastName);
+        var mail = new Email(email);
         var phone = new PhoneNumber(phoneNumber);
 
         if (dateOfBirth >= DateOnly.FromDateTime(DateTime.UtcNow))
@@ -33,12 +33,12 @@ public sealed class Patient : AggregateRoot
 
         var patient = new Patient
         {
-            Id               = Guid.NewGuid(),
-            FirstName        = name.FirstName,
-            LastName         = name.LastName,
-            ContactEmail     = mail.Value,
-            PhoneNumber      = phone.Value,
-            DateOfBirth      = dateOfBirth,
+            Id = Guid.NewGuid(),
+            FirstName = name.FirstName,
+            LastName = name.LastName,
+            ContactEmail = mail.Value,
+            PhoneNumber = phone.Value,
+            DateOfBirth = dateOfBirth,
             RegistrationDate = DateTimeOffset.UtcNow
         };
 
@@ -57,11 +57,11 @@ public sealed class Patient : AggregateRoot
         string lastName,
         string phoneNumber)
     {
-        var name  = new FullName(firstName, lastName);
+        var name = new FullName(firstName, lastName);
         var phone = new PhoneNumber(phoneNumber);
 
-        FirstName   = name.FirstName;
-        LastName    = name.LastName;
+        FirstName = name.FirstName;
+        LastName = name.LastName;
         PhoneNumber = phone.Value;
 
         AddDomainEvent(new PatientProfileUpdatedEvent(

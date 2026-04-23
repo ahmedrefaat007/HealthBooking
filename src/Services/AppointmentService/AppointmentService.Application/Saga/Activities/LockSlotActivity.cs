@@ -17,7 +17,7 @@ public sealed class LockSlotActivity(IProviderSlotGrpcClient slotClient)
 {
     public async Task Execute(
         BehaviorContext<BookingState, V1_InitiateBookingCommand> context,
-        IBehavior<BookingState, V1_InitiateBookingCommand>       next)
+        IBehavior<BookingState, V1_InitiateBookingCommand> next)
     {
         // Use the saga CorrelationId as the reference appointment ID for the lock
         var locked = await slotClient.LockSlotAsync(
@@ -34,7 +34,7 @@ public sealed class LockSlotActivity(IProviderSlotGrpcClient slotClient)
 
     public async Task Faulted<TException>(
         BehaviorExceptionContext<BookingState, V1_InitiateBookingCommand, TException> context,
-        IBehavior<BookingState, V1_InitiateBookingCommand>                            next)
+        IBehavior<BookingState, V1_InitiateBookingCommand> next)
         where TException : Exception
     {
         // Compensation: release the slot if we locked it before the failure occurred
@@ -55,5 +55,5 @@ public sealed class LockSlotActivity(IProviderSlotGrpcClient slotClient)
     }
 
     public void Accept(StateMachineVisitor visitor) => visitor.Visit(this);
-    public void Probe(ProbeContext context)         => context.CreateScope("lock-slot");
+    public void Probe(ProbeContext context) => context.CreateScope("lock-slot");
 }

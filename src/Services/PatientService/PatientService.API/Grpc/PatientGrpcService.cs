@@ -21,8 +21,8 @@ public sealed class PatientGrpcService(ISender sender) : PatientGrpc.PatientGrpc
 
         return new PatientResponse
         {
-            PatientId    = patient.PatientId.ToString(),
-            FullName     = $"{patient.FirstName} {patient.LastName}",
+            PatientId = patient.PatientId.ToString(),
+            FullName = $"{patient.FirstName} {patient.LastName}",
             ContactEmail = patient.ContactEmail
         };
     }

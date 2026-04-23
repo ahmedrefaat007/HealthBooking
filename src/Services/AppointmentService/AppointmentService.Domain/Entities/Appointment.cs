@@ -6,13 +6,13 @@ namespace AppointmentService.Domain.Entities;
 
 public sealed class Appointment : AggregateRoot
 {
-    public Guid              Id                 { get; private set; }
-    public Guid              PatientId          { get; private set; }
-    public Guid              SlotId             { get; private set; }
-    public string            PatientName        { get; private set; } = default!;
-    public AppointmentStatus Status             { get; private set; }
-    public string?           CancelReason       { get; private set; }
-    public DateTimeOffset    ScheduledStartUtc  { get; private set; }
+    public Guid Id { get; private set; }
+    public Guid PatientId { get; private set; }
+    public Guid SlotId { get; private set; }
+    public string PatientName { get; private set; } = default!;
+    public AppointmentStatus Status { get; private set; }
+    public string? CancelReason { get; private set; }
+    public DateTimeOffset ScheduledStartUtc { get; private set; }
 
     private Appointment() { }
 
@@ -23,11 +23,11 @@ public sealed class Appointment : AggregateRoot
 
         var appointment = new Appointment
         {
-            Id                = Guid.NewGuid(),
-            PatientId         = patientId,
-            SlotId            = slotId,
-            PatientName       = patientName.Trim(),
-            Status            = AppointmentStatus.Booked,
+            Id = Guid.NewGuid(),
+            PatientId = patientId,
+            SlotId = slotId,
+            PatientName = patientName.Trim(),
+            Status = AppointmentStatus.Booked,
             ScheduledStartUtc = scheduledStartUtc
         };
 
@@ -44,7 +44,7 @@ public sealed class Appointment : AggregateRoot
                 $"Appointment {Id} cannot be rescheduled (status: {Status}).");
 
         var oldSlotId = SlotId;
-        SlotId            = newSlotId;
+        SlotId = newSlotId;
         ScheduledStartUtc = newScheduledStartUtc;
 
         AddDomainEvent(new AppointmentRescheduledDomainEvent(
@@ -77,7 +77,7 @@ public sealed class Appointment : AggregateRoot
             throw new InvalidOperationException(
                 $"Appointment {Id} cannot be cancelled (status: {Status}).");
 
-        Status       = AppointmentStatus.Cancelled;
+        Status = AppointmentStatus.Cancelled;
         CancelReason = reason;
 
         AddDomainEvent(new AppointmentCancelledEvent(Id, reason, DateTimeOffset.UtcNow));

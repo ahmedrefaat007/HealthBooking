@@ -11,8 +11,8 @@ namespace AppointmentService.UnitTests.Application;
 
 public sealed class CancelAppointmentCommandHandlerTests
 {
-    private readonly IAppointmentRepository  _appointments = Substitute.For<IAppointmentRepository>();
-    private readonly IProviderSlotGrpcClient _slotClient   = Substitute.For<IProviderSlotGrpcClient>();
+    private readonly IAppointmentRepository _appointments = Substitute.For<IAppointmentRepository>();
+    private readonly IProviderSlotGrpcClient _slotClient = Substitute.For<IProviderSlotGrpcClient>();
 
     private IConfiguration BuildConfig(int noticeHours = 2)
     {
@@ -28,7 +28,7 @@ public sealed class CancelAppointmentCommandHandlerTests
     {
         var patientId = Guid.NewGuid();
         // Schedule 3 hours from now, cancellation window is 2 hours → within policy
-        var appt  = Appointment.Book(patientId, Guid.NewGuid(), "Alice", DateTimeOffset.UtcNow.AddHours(3));
+        var appt = Appointment.Book(patientId, Guid.NewGuid(), "Alice", DateTimeOffset.UtcNow.AddHours(3));
         _appointments.GetByIdAsync(appt.Id, Arg.Any<CancellationToken>()).Returns(appt);
 
         var command = new CancelAppointmentCommand(appt.Id, "Change of plans", patientId.ToString());
@@ -50,7 +50,7 @@ public sealed class CancelAppointmentCommandHandlerTests
         _appointments.GetByIdAsync(appt.Id, Arg.Any<CancellationToken>()).Returns(appt);
 
         var command = new CancelAppointmentCommand(appt.Id, "Late cancel", patientId.ToString());
-        var act     = async () => await CreateHandler().Handle(command, CancellationToken.None);
+        var act = async () => await CreateHandler().Handle(command, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*2 hour*");
@@ -62,7 +62,7 @@ public sealed class CancelAppointmentCommandHandlerTests
         _appointments.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).ReturnsNull();
 
         var command = new CancelAppointmentCommand(Guid.NewGuid(), "reason", Guid.NewGuid().ToString());
-        var act     = async () => await CreateHandler().Handle(command, CancellationToken.None);
+        var act = async () => await CreateHandler().Handle(command, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
@@ -74,7 +74,7 @@ public sealed class CancelAppointmentCommandHandlerTests
         _appointments.GetByIdAsync(appt.Id, Arg.Any<CancellationToken>()).Returns(appt);
 
         var command = new CancelAppointmentCommand(appt.Id, "reason", Guid.NewGuid().ToString());
-        var act     = async () => await CreateHandler().Handle(command, CancellationToken.None);
+        var act = async () => await CreateHandler().Handle(command, CancellationToken.None);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }

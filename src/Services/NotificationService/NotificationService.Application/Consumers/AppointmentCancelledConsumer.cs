@@ -11,8 +11,8 @@ namespace NotificationService.Application.Consumers;
 /// </summary>
 public sealed class AppointmentCancelledConsumer(
     INotificationLogRepository repository,
-    IEmailService               emailService,
-    IPatientEmailClient         patientEmailClient,
+    IEmailService emailService,
+    IPatientEmailClient patientEmailClient,
     ILogger<AppointmentCancelledConsumer> logger)
     : IConsumer<V1_AppointmentCancelledEvent>
 {
@@ -33,14 +33,14 @@ public sealed class AppointmentCancelledConsumer(
                            ?? $"patient-{msg.PatientId}@placeholder.local";
 
         var subject = "Your appointment has been cancelled";
-        var body    = BuildCancellationEmail(msg);
+        var body = BuildCancellationEmail(msg);
 
         var log = NotificationLog.Create(
-            correlationId  : msg.AppointmentId,
-            eventType      : eventType,
-            recipientEmail : patientEmail,
-            subject        : subject,
-            body           : body);
+            correlationId: msg.AppointmentId,
+            eventType: eventType,
+            recipientEmail: patientEmail,
+            subject: subject,
+            body: body);
 
         try
         {

@@ -1,4 +1,4 @@
-﻿namespace AppointmentService.IntegrationTests;
+namespace AppointmentService.IntegrationTests;
 
 public class UnitTest1
 {

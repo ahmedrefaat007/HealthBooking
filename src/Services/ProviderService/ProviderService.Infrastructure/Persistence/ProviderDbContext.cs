@@ -12,9 +12,9 @@ public sealed class ProviderDbContext(
     OutboxPublishingInterceptor outboxInterceptor)
     : DbContext(options)
 {
-    public DbSet<Provider>          Providers        => Set<Provider>();
-    public DbSet<AvailabilitySlot>  AvailabilitySlots => Set<AvailabilitySlot>();
-    public DbSet<OutboxMessage>     OutboxMessages   => Set<OutboxMessage>();
+    public DbSet<Provider> Providers => Set<Provider>();
+    public DbSet<AvailabilitySlot> AvailabilitySlots => Set<AvailabilitySlot>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

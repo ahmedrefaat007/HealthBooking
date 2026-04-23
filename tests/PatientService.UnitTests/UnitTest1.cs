@@ -1,4 +1,4 @@
-﻿namespace PatientService.UnitTests;
+namespace PatientService.UnitTests;
 
 public class UnitTest1
 {

@@ -1,4 +1,4 @@
-﻿namespace ProviderService.IntegrationTests;
+namespace ProviderService.IntegrationTests;
 
 public class UnitTest1
 {

@@ -1,4 +1,4 @@
-﻿namespace NotificationService.UnitTests;
+namespace NotificationService.UnitTests;
 
 public class UnitTest1
 {

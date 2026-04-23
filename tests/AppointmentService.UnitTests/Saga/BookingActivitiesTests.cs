@@ -23,19 +23,19 @@ public sealed class BookingActivitiesTests
 
     private static BookingState NewSaga(Guid? correlationId = null) => new()
     {
-        CorrelationId  = correlationId ?? Guid.NewGuid(),
-        PatientId      = Guid.NewGuid(),
-        SlotId         = Guid.NewGuid(),
+        CorrelationId = correlationId ?? Guid.NewGuid(),
+        PatientId = Guid.NewGuid(),
+        SlotId = Guid.NewGuid(),
         IdempotencyKey = Guid.NewGuid().ToString(),
-        CreatedAt      = DateTimeOffset.UtcNow
+        CreatedAt = DateTimeOffset.UtcNow
     };
 
     private static (
         BehaviorContext<BookingState, V1_InitiateBookingCommand> ctx,
-        IBehavior<BookingState, V1_InitiateBookingCommand>       next
+        IBehavior<BookingState, V1_InitiateBookingCommand> next
     ) BuildContext(BookingState saga)
     {
-        var ctx  = Substitute.For<BehaviorContext<BookingState, V1_InitiateBookingCommand>>();
+        var ctx = Substitute.For<BehaviorContext<BookingState, V1_InitiateBookingCommand>>();
         var next = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
 
         ctx.Saga.Returns(saga);
@@ -61,8 +61,8 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task VerifyPatient_Execute_SetsSagaPatientNameAndCallsNext()
     {
-        var saga          = NewSaga();
-        var (ctx, next)   = BuildContext(saga);
+        var saga = NewSaga();
+        var (ctx, next) = BuildContext(saga);
         var patientClient = Substitute.For<IPatientGrpcClient>();
 
         patientClient
@@ -79,8 +79,8 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task VerifyPatient_Execute_PatientNotFound_Throws()
     {
-        var saga          = NewSaga();
-        var (ctx, next)   = BuildContext(saga);
+        var saga = NewSaga();
+        var (ctx, next) = BuildContext(saga);
         var patientClient = Substitute.For<IPatientGrpcClient>();
 
         patientClient
@@ -98,10 +98,10 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task VerifyPatient_Faulted_JustDelegatesDown()
     {
-        var saga          = NewSaga();
+        var saga = NewSaga();
         var patientClient = Substitute.For<IPatientGrpcClient>();
-        var faultCtx      = BuildFaultContext(saga, new Exception("upstream"));
-        var next          = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
+        var faultCtx = BuildFaultContext(saga, new Exception("upstream"));
+        var next = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
 
         var sut = new VerifyPatientActivity(patientClient);
         await sut.Faulted(faultCtx, next);
@@ -116,9 +116,9 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task LockSlot_Execute_Success_SetsSlotWasLockedAndCallsNext()
     {
-        var saga        = NewSaga();
+        var saga = NewSaga();
         var (ctx, next) = BuildContext(saga);
-        var slotClient  = Substitute.For<IProviderSlotGrpcClient>();
+        var slotClient = Substitute.For<IProviderSlotGrpcClient>();
 
         slotClient
             .LockSlotAsync(saga.SlotId, saga.CorrelationId, Arg.Any<CancellationToken>())
@@ -134,9 +134,9 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task LockSlot_Execute_SlotUnavailable_ThrowsSlotConflictException()
     {
-        var saga        = NewSaga();
+        var saga = NewSaga();
         var (ctx, next) = BuildContext(saga);
-        var slotClient  = Substitute.For<IProviderSlotGrpcClient>();
+        var slotClient = Substitute.For<IProviderSlotGrpcClient>();
 
         slotClient
             .LockSlotAsync(saga.SlotId, saga.CorrelationId, Arg.Any<CancellationToken>())
@@ -153,11 +153,11 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task LockSlot_Faulted_WhenSlotWasLocked_ReleasesSlot()
     {
-        var saga       = NewSaga();
+        var saga = NewSaga();
         saga.SlotWasLocked = true;
         var slotClient = Substitute.For<IProviderSlotGrpcClient>();
-        var faultCtx   = BuildFaultContext(saga, new Exception("downstream fail"));
-        var next       = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
+        var faultCtx = BuildFaultContext(saga, new Exception("downstream fail"));
+        var next = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
 
         var sut = new LockSlotActivity(slotClient);
         await sut.Faulted(faultCtx, next);
@@ -170,11 +170,11 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task LockSlot_Faulted_WhenSlotWasNotLocked_DoesNotRelease()
     {
-        var saga       = NewSaga();
+        var saga = NewSaga();
         saga.SlotWasLocked = false;
         var slotClient = Substitute.For<IProviderSlotGrpcClient>();
-        var faultCtx   = BuildFaultContext(saga, new Exception("early fail"));
-        var next       = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
+        var faultCtx = BuildFaultContext(saga, new Exception("early fail"));
+        var next = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
 
         var sut = new LockSlotActivity(slotClient);
         await sut.Faulted(faultCtx, next);
@@ -190,11 +190,11 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task PersistAppointment_Execute_NewBooking_PersistsAndSetsAppointmentId()
     {
-        var saga         = NewSaga();
+        var saga = NewSaga();
         saga.PatientName = "Jane Doe";
-        var (ctx, next)  = BuildContext(saga);
+        var (ctx, next) = BuildContext(saga);
         var appointments = Substitute.For<IAppointmentRepository>();
-        var idempotency  = Substitute.For<IIdempotencyRepository>();
+        var idempotency = Substitute.For<IIdempotencyRepository>();
 
         idempotency.FindAsync(saga.IdempotencyKey, Arg.Any<CancellationToken>())
             .ReturnsNull();
@@ -216,17 +216,17 @@ public sealed class BookingActivitiesTests
     [Fact]
     public async Task PersistAppointment_Execute_DuplicateKey_ReusesExistingAppointmentId()
     {
-        var saga             = NewSaga();
-        saga.PatientName     = "Jane Doe";
-        var existingApptId   = Guid.NewGuid();
-        var (ctx, next)      = BuildContext(saga);
-        var appointments     = Substitute.For<IAppointmentRepository>();
-        var idempotency      = Substitute.For<IIdempotencyRepository>();
+        var saga = NewSaga();
+        saga.PatientName = "Jane Doe";
+        var existingApptId = Guid.NewGuid();
+        var (ctx, next) = BuildContext(saga);
+        var appointments = Substitute.For<IAppointmentRepository>();
+        var idempotency = Substitute.For<IIdempotencyRepository>();
 
         idempotency.FindAsync(saga.IdempotencyKey, Arg.Any<CancellationToken>())
             .Returns(new BookingIdempotencyKey
             {
-                Key           = saga.IdempotencyKey,
+                Key = saga.IdempotencyKey,
                 AppointmentId = existingApptId
             });
 
@@ -243,9 +243,9 @@ public sealed class BookingActivitiesTests
     public async Task PersistAppointment_Faulted_JustDelegatesDown()
     {
         var appointments = Substitute.For<IAppointmentRepository>();
-        var idempotency  = Substitute.For<IIdempotencyRepository>();
-        var faultCtx     = BuildFaultContext(NewSaga(), new Exception("upstream"));
-        var next         = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
+        var idempotency = Substitute.For<IIdempotencyRepository>();
+        var faultCtx = BuildFaultContext(NewSaga(), new Exception("upstream"));
+        var next = Substitute.For<IBehavior<BookingState, V1_InitiateBookingCommand>>();
 
         var sut = new PersistAppointmentActivity(appointments, idempotency, Substitute.For<IProviderSlotGrpcClient>());
         await sut.Faulted(faultCtx, next);

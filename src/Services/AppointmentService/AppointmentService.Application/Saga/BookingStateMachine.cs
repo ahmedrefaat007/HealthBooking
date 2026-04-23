@@ -18,7 +18,7 @@ public sealed class BookingStateMachine : MassTransitStateMachine<BookingState>
 {
     public State Submitted { get; private set; } = null!;
     public State Completed { get; private set; } = null!;
-    public State Failed    { get; private set; } = null!;
+    public State Failed { get; private set; } = null!;
 
     public Event<V1_InitiateBookingCommand> BookingInitiated { get; private set; } = null!;
 
@@ -33,10 +33,10 @@ public sealed class BookingStateMachine : MassTransitStateMachine<BookingState>
             When(BookingInitiated)
                 .Then(ctx =>
                 {
-                    ctx.Saga.PatientId      = ctx.Message.PatientId;
-                    ctx.Saga.SlotId         = ctx.Message.SlotId;
+                    ctx.Saga.PatientId = ctx.Message.PatientId;
+                    ctx.Saga.SlotId = ctx.Message.SlotId;
                     ctx.Saga.IdempotencyKey = ctx.Message.IdempotencyKey;
-                    ctx.Saga.CreatedAt      = DateTimeOffset.UtcNow;
+                    ctx.Saga.CreatedAt = DateTimeOffset.UtcNow;
                 })
                 .TransitionTo(Submitted)
                 .Activity(x => x.OfType<VerifyPatientActivity>())

@@ -13,8 +13,8 @@ namespace NotificationService.Application.Consumers;
 /// </summary>
 public sealed class AppointmentBookedConsumer(
     INotificationLogRepository repository,
-    IEmailService               emailService,
-    IPatientEmailClient         patientEmailClient,
+    IEmailService emailService,
+    IPatientEmailClient patientEmailClient,
     ILogger<AppointmentBookedConsumer> logger)
     : IConsumer<V1_AppointmentBookedEvent>
 {
@@ -36,14 +36,14 @@ public sealed class AppointmentBookedConsumer(
                            ?? $"patient-{msg.PatientId}@placeholder.local";
 
         var subject = "Your appointment has been confirmed";
-        var body    = BuildBookingEmail(msg);
+        var body = BuildBookingEmail(msg);
 
         var log = NotificationLog.Create(
-            correlationId  : msg.AppointmentId,
-            eventType      : eventType,
-            recipientEmail : patientEmail,
-            subject        : subject,
-            body           : body);
+            correlationId: msg.AppointmentId,
+            eventType: eventType,
+            recipientEmail: patientEmail,
+            subject: subject,
+            body: body);
 
         try
         {

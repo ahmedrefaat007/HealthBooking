@@ -22,11 +22,11 @@ public sealed class ProviderGrpcService(ProviderDbContext db, ICacheService cach
 
         return new SlotResponse
         {
-            SlotId       = slot.Id.ToString(),
-            ProviderId   = slot.ProviderId.ToString(),
+            SlotId = slot.Id.ToString(),
+            ProviderId = slot.ProviderId.ToString(),
             StartTimeUtc = slot.Date.ToDateTime(slot.StartTime, DateTimeKind.Utc).ToString("O"),
-            EndTimeUtc   = slot.Date.ToDateTime(slot.EndTime, DateTimeKind.Utc).ToString("O"),
-            Status       = slot.Status.ToString()
+            EndTimeUtc = slot.Date.ToDateTime(slot.EndTime, DateTimeKind.Utc).ToString("O"),
+            Status = slot.Status.ToString()
         };
     }
 

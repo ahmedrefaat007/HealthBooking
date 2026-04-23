@@ -13,16 +13,16 @@ namespace NotificationService.UnitTests.Application;
 public class AppointmentBookedConsumerTests
 {
     private readonly INotificationLogRepository _repository;
-    private readonly IEmailService              _emailService;
-    private readonly IPatientEmailClient        _patientEmailClient;
-    private readonly AppointmentBookedConsumer  _sut;
+    private readonly IEmailService _emailService;
+    private readonly IPatientEmailClient _patientEmailClient;
+    private readonly AppointmentBookedConsumer _sut;
 
     public AppointmentBookedConsumerTests()
     {
-        _repository         = Substitute.For<INotificationLogRepository>();
-        _emailService       = Substitute.For<IEmailService>();
+        _repository = Substitute.For<INotificationLogRepository>();
+        _emailService = Substitute.For<IEmailService>();
         _patientEmailClient = Substitute.For<IPatientEmailClient>();
-        var logger          = Substitute.For<ILogger<AppointmentBookedConsumer>>();
+        var logger = Substitute.For<ILogger<AppointmentBookedConsumer>>();
 
         _patientEmailClient.GetPatientEmailAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((string?)null);
@@ -34,14 +34,14 @@ public class AppointmentBookedConsumerTests
     private static (ConsumeContext<V1_AppointmentBookedEvent> ctx, V1_AppointmentBookedEvent msg) BuildContext()
     {
         var msg = new V1_AppointmentBookedEvent(
-            AppointmentId    : Guid.NewGuid(),
-            PatientId        : Guid.NewGuid(),
-            ProviderId       : Guid.NewGuid(),
-            SlotId           : Guid.NewGuid(),
+            AppointmentId: Guid.NewGuid(),
+            PatientId: Guid.NewGuid(),
+            ProviderId: Guid.NewGuid(),
+            SlotId: Guid.NewGuid(),
             ScheduledStartUtc: DateTimeOffset.UtcNow.AddDays(1),
-            ScheduledEndUtc  : DateTimeOffset.UtcNow.AddDays(1).AddHours(1),
+            ScheduledEndUtc: DateTimeOffset.UtcNow.AddDays(1).AddHours(1),
             SagaCorrelationId: Guid.NewGuid(),
-            OccurredAt       : DateTimeOffset.UtcNow);
+            OccurredAt: DateTimeOffset.UtcNow);
 
         var ctx = Substitute.For<ConsumeContext<V1_AppointmentBookedEvent>>();
         ctx.Message.Returns(msg);
@@ -67,7 +67,7 @@ public class AppointmentBookedConsumerTests
         await _repository.Received(1)
             .AddAsync(
                 Arg.Is<NotificationLog>(l =>
-                    l.Status        == NotificationStatus.Sent &&
+                    l.Status == NotificationStatus.Sent &&
                     l.CorrelationId == msg.AppointmentId),
                 Arg.Any<CancellationToken>());
 
@@ -116,7 +116,7 @@ public class AppointmentBookedConsumerTests
         await _repository.Received(1)
             .AddAsync(
                 Arg.Is<NotificationLog>(l =>
-                    l.Status        == NotificationStatus.Failed &&
+                    l.Status == NotificationStatus.Failed &&
                     l.CorrelationId == msg.AppointmentId),
                 Arg.Any<CancellationToken>());
 
