@@ -19,14 +19,7 @@ public sealed class NotificationPersistenceTests : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _sqlContainer.StartAsync();
-
-        var opts = new DbContextOptionsBuilder<NotificationDbContext>()
-            .UseSqlServer(
-                _sqlContainer.GetConnectionString(),
-                sql => sql.MigrationsAssembly(typeof(NotificationDbContext).Assembly.FullName))
-            .Options;
-
-        _db = new NotificationDbContext(opts);
+        _db = TestDbContextFactory.Create(_sqlContainer.GetConnectionString());
         await _db.Database.MigrateAsync();
     }
 

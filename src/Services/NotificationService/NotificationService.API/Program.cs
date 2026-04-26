@@ -6,7 +6,9 @@ using NotificationService.Domain.Entities;
 using NotificationService.Infrastructure.Clients;
 using NotificationService.Infrastructure.Email;
 using NotificationService.Infrastructure.Persistence;
+using NotificationService.Infrastructure.Persistence.Interceptors;
 using NotificationService.Infrastructure.Persistence.Repositories;
+using NotificationService.Infrastructure.Services;
 using HealthBooking.Contracts.Grpc;
 using HealthBooking.SharedKernel.Extensions;
 using Serilog;
@@ -25,6 +27,9 @@ builder.Host.UseSerilog((ctx, cfg) =>
        .WriteTo.Console());
 
 // ── Database ──────────────────────────────────────────────────────────────
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<AuditInterceptor>();
 builder.Services.AddDbContext<NotificationDbContext>(opts =>
     opts.UseSqlServer(
         builder.Configuration.GetConnectionString("NotificationDb"),

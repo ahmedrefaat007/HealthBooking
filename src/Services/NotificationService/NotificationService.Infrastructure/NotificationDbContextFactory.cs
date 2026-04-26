@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using NotificationService.Infrastructure.Persistence.Interceptors;
+using NotificationService.Infrastructure.Services;
 
 namespace NotificationService.Infrastructure.Persistence;
 
@@ -14,6 +17,7 @@ public sealed class NotificationDbContextFactory
                 sql => sql.MigrationsAssembly("NotificationService.Infrastructure"))
             .Options;
 
-        return new NotificationDbContext(options);
+        var audit = new AuditInterceptor(new CurrentUserService(new HttpContextAccessor()));
+        return new NotificationDbContext(options, audit);
     }
 }

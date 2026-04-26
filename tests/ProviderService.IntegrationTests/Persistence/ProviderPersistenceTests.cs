@@ -86,6 +86,7 @@ public sealed class ProviderPersistenceTests : IAsyncLifetime
         var endTime = new TimeOnly(9, 0);
 
         loaded.DefineDailyAvailability(date, startTime, endTime);
+        _context.AvailabilitySlots.AddRange(loaded.Slots);
         await _context.SaveChangesAsync();
 
         _context.ChangeTracker.Clear();

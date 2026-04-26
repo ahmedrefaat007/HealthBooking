@@ -2,6 +2,11 @@ using NotificationService.Domain.Entities;
 
 namespace NotificationService.Application.Interfaces;
 
+public interface ICurrentUserService
+{
+    string? UserId { get; }
+}
+
 public interface INotificationLogRepository
 {
     Task<NotificationLog?> GetByIdAsync(Guid id, CancellationToken ct = default);
