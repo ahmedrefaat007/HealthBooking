@@ -4,6 +4,25 @@ using PatientService.Domain.ValueObjects;
 
 namespace PatientService.Domain.Entities;
 
+/*
+ * Patient
+ * -------
+ * The core DDD aggregate root for the PatientService.
+ * Encapsulates all invariants and state transitions related to a healthcare patient.
+ *
+ * WHO USES IT:
+ *   - RegisterPatientCommandHandler: creates new patients via Patient.Register().
+ *   - UpdatePatientProfileCommandHandler: calls UpdateProfile().
+ *   - PatientRepository: persists and retrieves Patient instances.
+ *   - PatientGrpcService: serves patient data to AppointmentService and NotificationService.
+ *
+ * WHY THIS APPROACH:
+ *   Aggregate root pattern ensures the Patient entity is always in a valid state:
+ *   value objects (FullName, Email, PhoneNumber) validate on construction, and the
+ *   factory method Register() is the only way to create a Patient, preventing
+ *   partially-initialised instances.  Domain events emitted here trigger
+ *   downstream workflows (identity provisioning, audit) via the outbox pattern.
+ */
 public sealed class Patient : AggregateRoot
 {
     public Guid Id { get; private set; }
@@ -14,9 +33,17 @@ public sealed class Patient : AggregateRoot
     public DateOnly DateOfBirth { get; private set; }
     public DateTimeOffset RegistrationDate { get; private set; }
 
-    // EF Core private constructor
+    /* EF Core requires a parameterless constructor for materialisation; kept private to prevent
+     * callers from bypassing the Register() factory method. */
     private Patient() { }
 
+    /*
+     * Register
+     * --------
+     * Factory method — the only public way to create a Patient.
+     * Validates all inputs through value objects, enforces that date-of-birth is
+     * in the past, assigns a new GUID, and raises PatientRegisteredEvent.
+     */
     public static Patient Register(
         string firstName,
         string lastName,
@@ -52,6 +79,13 @@ public sealed class Patient : AggregateRoot
         return patient;
     }
 
+    /*
+     * UpdateProfile
+     * -------------
+     * Updates mutable profile fields (name, phone).  Email and date-of-birth are
+     * immutable after registration.  Raises PatientProfileUpdatedEvent so downstream
+     * consumers can react (cache invalidation, audit log).
+     */
     public void UpdateProfile(
         string firstName,
         string lastName,

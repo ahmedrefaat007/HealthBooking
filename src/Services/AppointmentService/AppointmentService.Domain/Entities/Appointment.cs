@@ -4,6 +4,27 @@ using HealthBooking.SharedKernel.Domain;
 
 namespace AppointmentService.Domain.Entities;
 
+/*
+ * Appointment
+ * -----------
+ * The core DDD aggregate root for the AppointmentService.
+ * Owns the full lifecycle of a patient-provider appointment.
+ *
+ * WHO USES IT:
+ *   - BookingStateMachine (PersistAppointmentActivity): creates via Book() factory.
+ *   - BookAppointmentCommandHandler: creates directly for non-saga bookings.
+ *   - CancelAppointmentCommandHandler: calls Cancel().
+ *   - ConfirmAppointmentCommandHandler: calls Confirm().
+ *   - MarkNoShowCommandHandler: calls MarkNoShow().
+ *   - RescheduleAppointmentCommandHandler: calls Reschedule().
+ *   - AppointmentRepository: persists and retrieves instances.
+ *
+ * WHY THIS APPROACH:
+ *   Each state transition is a domain method that enforces valid state
+ *   preconditions and raises a domain event.  Domain events are captured by
+ *   OutboxPublishingInterceptor in the same DB transaction, guaranteeing
+ *   at-least-once delivery to RabbitMQ consumers.
+ */
 public sealed class Appointment : AggregateRoot
 {
     public Guid Id { get; private set; }
@@ -14,8 +35,15 @@ public sealed class Appointment : AggregateRoot
     public string? CancelReason { get; private set; }
     public DateTimeOffset ScheduledStartUtc { get; private set; }
 
+    /* EF Core materialisation constructor; private to prevent bypassing Book(). */
     private Appointment() { }
 
+    /*
+     * Book
+     * ----
+     * Factory method — creates a new Appointment in the Booked state and raises
+     * AppointmentBookedEvent (captured by the outbox for downstream consumers).
+     */
     public static Appointment Book(
         Guid patientId, Guid slotId, string patientName, DateTimeOffset scheduledStartUtc)
     {

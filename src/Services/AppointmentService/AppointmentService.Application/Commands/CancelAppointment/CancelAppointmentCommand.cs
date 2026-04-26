@@ -5,6 +5,20 @@ using Microsoft.Extensions.Configuration;
 
 namespace AppointmentService.Application.Commands.CancelAppointment;
 
+/*
+ * CancelAppointmentCommand
+ * ------------------------
+ * MediatR command to cancel an appointment within the allowed notice window.
+ *
+ * WHO USES IT:
+ *   AppointmentsEndpoints: DELETE /api/appointments/{id}.
+ *
+ * WHY THIS APPROACH:
+ *   Enforcing the cancellation notice window here (at the application layer)
+ *   keeps the business rule configurable via appsettings without polluting the
+ *   domain entity with infrastructure dependencies.  The slot is released via
+ *   gRPC immediately so it becomes available for other patients.
+ */
 public sealed record CancelAppointmentCommand(
     Guid AppointmentId,
     string Reason,

@@ -13,6 +13,30 @@ using System.Security.Claims;
 
 namespace AppointmentService.API.Endpoints;
 
+/*
+ * AppointmentsEndpoints
+ * ---------------------
+ * Maps all HTTP endpoints for the AppointmentService REST API using Minimal APIs.
+ *
+ * ENDPOINTS:
+ *   POST   /api/appointments                       — Book via saga (Idempotency-Key required).
+ *   GET    /api/appointments/{id}                   — Get single appointment.
+ *   DELETE /api/appointments/{id}                   — Cancel appointment.
+ *   GET    /api/appointments/patient/{patientId}     — List patient appointments.
+ *   PUT    /api/appointments/{id}/reschedule        — Reschedule to new slot.
+ *   POST   /api/appointments/{id}/confirm           — Confirm appointment.
+ *   POST   /api/appointments/{id}/no-show           — Mark no-show.
+ *
+ * WHO USES IT:
+ *   Program.cs: app.MapAppointmentEndpoints().
+ *   ApiGateway YARP: proxies /api/appointments/** to this service.
+ *
+ * BOOKING FLOW:
+ *   The POST endpoint performs an idempotency pre-check, then dispatches
+ *   V1_InitiateBookingCommand to the BookingStateMachine via IRequestClient
+ *   with a 30-second timeout, awaiting V1_BookingCompletedEvent or
+ *   V1_BookingFailedEvent as a request/response pattern.
+ */
 public static class AppointmentsEndpoints
 {
     public static IEndpointRouteBuilder MapAppointmentEndpoints(this IEndpointRouteBuilder app)

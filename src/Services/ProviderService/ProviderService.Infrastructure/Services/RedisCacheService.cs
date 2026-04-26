@@ -4,6 +4,21 @@ using System.Text.Json;
 
 namespace ProviderService.Infrastructure.Services;
 
+/*
+ * RedisCacheService
+ * -----------------
+ * ICacheService implementation backed by IDistributedCache (Redis in production).
+ *
+ * WHO USES IT:
+ *   DefineAvailabilityCommandHandler: invalidates slot-list cache key.
+ *   ProviderGrpcService: invalidates per-provider slot cache on slot state change.
+ *   AppointmentBookedConsumer, SlotReleasedConsumer: per-slot cache invalidation.
+ *
+ * WHY THIS APPROACH:
+ *   JSON serialisation via System.Text.Json is allocation-efficient and keeps
+ *   the cached form human-readable in Redis.  AbsoluteExpiration is preferred
+ *   over sliding expiration to prevent stale slot data from living indefinitely.
+ */
 public sealed class RedisCacheService(IDistributedCache cache) : ICacheService
 {
     public async Task<T?> GetAsync<T>(string key, CancellationToken ct = default) where T : class

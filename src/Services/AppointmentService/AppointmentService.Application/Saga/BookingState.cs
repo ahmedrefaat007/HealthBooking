@@ -2,10 +2,22 @@ using MassTransit;
 
 namespace AppointmentService.Application.Saga;
 
-/// <summary>
-/// Saga state persisted to SQL Server via MassTransit EF Core repository.
-/// Tracks one booking attempt from initiation through to completion or failure.
-/// </summary>
+/*
+ * BookingState
+ * ------------
+ * Saga state entity persisted to SQL Server via the MassTransit EF Core saga repository.
+ * One row per booking attempt; tracks inputs, activity results, and compensation flags.
+ *
+ * WHO USES IT:
+ *   BookingStateMachine: reads/writes state properties via saga instance.
+ *   MassTransit: serialises/deserialises state between saga bus invocations.
+ *   AppointmentDbContext: maps to the BookingSagaStates table.
+ *
+ * WHY THIS APPROACH:
+ *   Persistent saga state survives process restarts and scales horizontally.
+ *   SlotWasLocked is a compensation flag so LockSlotActivity.Faulted knows
+ *   whether to call ReleaseSlot on failure without querying ProviderService.
+ */
 public sealed class BookingState : SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }

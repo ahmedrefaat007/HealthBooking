@@ -6,6 +6,28 @@ using ProviderService.Infrastructure.Persistence;
 
 namespace ProviderService.API.Grpc;
 
+/*
+ * ProviderGrpcService
+ * -------------------
+ * gRPC service implementation for synchronous slot operations called by
+ * AppointmentService during the booking saga.
+ *
+ * WHO USES IT:
+ *   AppointmentService LockSlotActivity: calls LockSlot() to reserve a slot.
+ *   AppointmentService (cancel/reschedule commands): calls ReleaseSlot().
+ *   AppointmentService VerifyPatientActivity: calls GetSlotById() to get start time.
+ *
+ * WHY THIS APPROACH:
+ *   gRPC provides strongly-typed, low-latency synchronous calls for critical
+ *   booking operations where HTTP REST overhead is undesirable.
+ *   Optimistic concurrency via RowVersion on AvailabilitySlot catches concurrent
+ *   lock attempts and returns StatusCode.Aborted so the caller (saga) can retry
+ *   or compensate without silent data corruption.
+ *
+ * CONCURRENCY NOTE:
+ *   LockSlot catches DbUpdateConcurrencyException and maps it to gRPC Aborted,
+ *   which ProviderSlotGrpcClient translates to a SlotConflictException for the saga.
+ */
 public sealed class ProviderGrpcService(ProviderDbContext db, ICacheService cache)
     : ProviderGrpc.ProviderGrpcBase
 {

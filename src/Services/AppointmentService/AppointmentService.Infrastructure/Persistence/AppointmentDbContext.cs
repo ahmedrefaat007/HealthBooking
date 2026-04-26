@@ -7,6 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentService.Infrastructure.Persistence;
 
+/*
+ * AppointmentDbContext
+ * --------------------
+ * EF Core DbContext for the AppointmentService bounded context.
+ *
+ * WHO USES IT:
+ *   AppointmentRepository, IdempotencyRepository, OutboxProcessor, Program.cs.
+ *
+ * NOTABLE:
+ *   BookingSagaStates DbSet persists the MassTransit saga state machine
+ *   instances.  This keeps all AppointmentService data in a single SQL database,
+ *   simplifying migrations and removing a separate saga DB.
+ */
 public sealed class AppointmentDbContext(
     DbContextOptions<AppointmentDbContext> options,
     AuditInterceptor auditInterceptor,

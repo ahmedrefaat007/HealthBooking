@@ -4,16 +4,31 @@ using MassTransit;
 
 namespace AppointmentService.Application.Saga;
 
-/// <summary>
-/// Orchestrates the three-step booking flow:
-///   1. Verify patient identity via gRPC (VerifyPatientActivity)
-///   2. Lock the availability slot via gRPC (LockSlotActivity)
-///   3. Persist the Appointment entity + idempotency key (PersistAppointmentActivity)
-///
-/// On success → responds with V1_BookingCompletedEvent.
-/// On any failure → LockSlotActivity.Faulted compensates by releasing the slot,
-///                  then the machine transitions to Failed and responds with V1_BookingFailedEvent.
-/// </summary>
+/*
+ * BookingStateMachine
+ * -------------------
+ * MassTransit saga state machine orchestrating the three-step booking flow.
+ *
+ * FLOW (on V1_InitiateBookingCommand):
+ *   1. VerifyPatientActivity  — confirms patient exists via gRPC (no compensation).
+ *   2. LockSlotActivity       — locks the slot in ProviderService via gRPC;
+ *                                Faulted releases the slot if it was locked.
+ *   3. PersistAppointmentActivity — saves Appointment + idempotency key;
+ *                                    Faulted delegates slot release to LockSlotActivity.
+ *
+ *   Success → responds V1_BookingCompletedEvent, transitions to Completed.
+ *   Failure → responds V1_BookingFailedEvent,    transitions to Failed.
+ *
+ * WHO USES IT:
+ *   AppointmentsEndpoints: sends V1_InitiateBookingCommand via IRequestClient
+ *   and awaits V1_BookingCompletedEvent or V1_BookingFailedEvent.
+ *
+ * WHY SAGA PATTERN:
+ *   Distributed transactions across PatientService, ProviderService, and
+ *   AppointmentService cannot use a 2PC.  The saga provides compensatable
+ *   choreography with a single coordinator (this machine) and built-in
+ *   persistence for crash recovery.
+ */
 public sealed class BookingStateMachine : MassTransitStateMachine<BookingState>
 {
     public State Submitted { get; private set; } = null!;

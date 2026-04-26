@@ -5,6 +5,26 @@ using ProviderService.Domain.ValueObjects;
 
 namespace ProviderService.Domain.Entities;
 
+/*
+ * AvailabilitySlot
+ * ----------------
+ * Represents a 30-minute bookable time slot for a Provider on a given date.
+ * State machine: Available → Locked → Booked (or Locked/Booked → Available on release).
+ *
+ * WHO USES IT:
+ *   - Provider.DefineDailyAvailability(): creates slots via the internal Create() factory.
+ *   - ProviderGrpcService.LockSlot(): calls Lock() inside a gRPC request from AppointmentService.
+ *   - ProviderGrpcService.ReleaseSlot(): calls Release() on cancellation/reschedule.
+ *   - AppointmentBookedConsumer: calls Book() when an appointment is confirmed.
+ *   - SlotRepository: persists slot state changes.
+ *
+ * WHY THIS APPROACH:
+ *   RowVersion enables optimistic concurrency so two concurrent LockSlot gRPC calls
+ *   for the same slot result in a DbUpdateConcurrencyException, which the gRPC service
+ *   translates to an Aborted status — the saga then retries or compensates.
+ *   The internal Create() factory prevents direct construction outside the Provider
+ *   aggregate, preserving the aggregate boundary.
+ */
 public sealed class AvailabilitySlot : AuditableEntity
 {
     public Guid Id { get; private set; }

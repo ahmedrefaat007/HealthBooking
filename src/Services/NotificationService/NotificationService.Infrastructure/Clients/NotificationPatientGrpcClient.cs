@@ -4,10 +4,20 @@ using NotificationService.Application.Interfaces;
 
 namespace NotificationService.Infrastructure.Clients;
 
-/// <summary>
-/// Fetches the patient's contact e-mail from PatientService via gRPC.
-/// Used by notification consumers to replace the placeholder e-mail address.
-/// </summary>
+/*
+ * NotificationPatientGrpcClient
+ * -----------------------------
+ * IPatientEmailClient implementation that calls PatientService via gRPC to
+ * retrieve the patient's contact email for notification delivery.
+ *
+ * WHO USES IT:
+ *   AppointmentBookedConsumer, AppointmentCancelledConsumer,
+ *   AppointmentRescheduledConsumer.
+ *
+ * WHY THIS APPROACH:
+ *   Returns null on NotFound so consumers can fall back to a placeholder email
+ *   rather than crashing; non-critical service dependency handled gracefully.
+ */
 public sealed class NotificationPatientGrpcClient(PatientGrpc.PatientGrpcClient grpcClient)
     : IPatientEmailClient
 {

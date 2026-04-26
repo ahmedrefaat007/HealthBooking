@@ -6,11 +6,18 @@ using NotificationService.Domain.Entities;
 
 namespace NotificationService.Application.Consumers;
 
-/// <summary>
-/// Subscribes to V1_AppointmentRescheduledEvent and sends a reschedule
-/// notification email to the patient.
-/// Idempotent: skips if a log entry already exists for (AppointmentId, EventType).
-/// </summary>
+/*
+ * AppointmentRescheduledConsumer
+ * ------------------------------
+ * MassTransit IConsumer handling V1_AppointmentRescheduledEvent to notify
+ * the patient of their new appointment time.
+ *
+ * WHO USES IT:
+ *   MassTransit bus: subscribed to the appointment.rescheduled exchange.
+ *
+ * IDEMPOTENCY + FALLBACK:
+ *   Same pattern as AppointmentBookedConsumer.
+ */
 public sealed class AppointmentRescheduledConsumer(
     INotificationLogRepository repository,
     IEmailService emailService,

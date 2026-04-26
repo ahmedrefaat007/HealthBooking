@@ -4,6 +4,20 @@ using NotificationService.Domain.Entities;
 
 namespace NotificationService.Infrastructure.Persistence.Repositories;
 
+/*
+ * NotificationLogRepository
+ * -------------------------
+ * EF Core implementation of INotificationLogRepository.
+ *
+ * WHO USES IT:
+ *   All three notification consumers (AddAsync, SaveChangesAsync,
+ *   ExistsByCorrelationAndTypeAsync for idempotency).
+ *
+ * WHY THIS APPROACH:
+ *   ExistsByCorrelationAndTypeAsync translates to a single SQL EXISTS query
+ *   on the (CorrelationId, EventType) composite index, making the idempotency
+ *   check O(1) without loading the entity.
+ */
 public sealed class NotificationLogRepository(NotificationDbContext context)
     : INotificationLogRepository
 {

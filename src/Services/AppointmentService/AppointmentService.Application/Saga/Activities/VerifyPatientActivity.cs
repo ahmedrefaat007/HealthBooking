@@ -4,11 +4,19 @@ using MassTransit;
 
 namespace AppointmentService.Application.Saga.Activities;
 
-/// <summary>
-/// Step 1: Calls PatientService via gRPC to confirm the patient exists
-/// and fetches the patient name needed for the Appointment entity.
-/// Faulted: nothing to undo — patient lookup is read-only.
-/// </summary>
+/*
+ * VerifyPatientActivity
+ * ---------------------
+ * Saga step 1: Calls PatientService via gRPC to confirm the patient exists
+ * and fetches the patient's full name for storage on the Appointment entity.
+ *
+ * WHO USES IT:
+ *   BookingStateMachine: first activity in the Initially handler chain.
+ *
+ * WHY THIS APPROACH:
+ *   Validating the patient before locking any slot prevents wasting a slot lock
+ *   on a non-existent patient.  Being read-only, this activity has no compensation.
+ */
 public sealed class VerifyPatientActivity(IPatientGrpcClient patientClient)
     : IStateMachineActivity<BookingState, V1_InitiateBookingCommand>
 {

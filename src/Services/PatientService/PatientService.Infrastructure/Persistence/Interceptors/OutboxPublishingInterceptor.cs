@@ -5,6 +5,22 @@ using System.Text.Json;
 
 namespace PatientService.Infrastructure.Persistence.Interceptors;
 
+/*
+ * OutboxPublishingInterceptor
+ * ---------------------------
+ * EF Core SaveChangesInterceptor that implements the Transactional Outbox pattern.
+ * Before each SaveChanges, it harvests domain events from AggregateRoot entries
+ * and serialises them as OutboxMessage rows inside the same database transaction.
+ *
+ * WHO USES IT:
+ *   PatientDbContext registers it alongside AuditInterceptor via OnConfiguring.
+ *
+ * WHY THIS APPROACH:
+ *   Writing domain events to the same database transaction as the aggregate change
+ *   guarantees no events are lost if the message broker is unavailable.  The
+ *   OutboxProcessor background service (if present) polls and publishes them
+ *   separately, providing reliable at-least-once delivery via MassTransit.
+ */
 public sealed class OutboxPublishingInterceptor : SaveChangesInterceptor
 {
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(

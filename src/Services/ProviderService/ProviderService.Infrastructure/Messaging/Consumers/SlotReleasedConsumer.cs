@@ -6,11 +6,22 @@ using ProviderService.Domain.Enums;
 
 namespace ProviderService.Infrastructure.Messaging.Consumers;
 
-/// <summary>
-/// Subscribes to V1_SlotReleasedEvent and transitions the slot back to Available.
-/// Published when an appointment is cancelled or rescheduled.
-/// Idempotent: if slot is already Available, the no-op guard skips the operation.
-/// </summary>
+/*
+ * SlotReleasedConsumer
+ * --------------------
+ * MassTransit consumer that transitions a slot back to Available when a
+ * V1_SlotReleasedEvent is published (appointment cancelled or rescheduled).
+ *
+ * WHO USES IT:
+ *   MassTransit RabbitMQ subscriber configured in Program.cs.
+ *   Published by AppointmentService when CancelAppointment or RescheduleAppointment
+ *   commands complete and the old slot must be freed.
+ *
+ * WHY THIS APPROACH:
+ *   Idempotent guard (slot.Status == Available) ensures repeated delivery of the
+ *   same release event does not cause an error or double-release.
+ *   Redis invalidation keeps the provider's slot-list cache fresh.
+ */
 public sealed class SlotReleasedConsumer(
     ISlotRepository slots,
     ICacheService cache,

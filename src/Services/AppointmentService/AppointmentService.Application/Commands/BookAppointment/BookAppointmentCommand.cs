@@ -6,6 +6,22 @@ using MediatR;
 
 namespace AppointmentService.Application.Commands.BookAppointment;
 
+/*
+ * BookAppointmentCommand
+ * ----------------------
+ * MediatR command for direct (non-saga) appointment booking.
+ * Used when the caller wants a synchronous response and the saga overhead is
+ * unnecessary (e.g., admin flows or tests).
+ *
+ * WHO USES IT:
+ *   AppointmentsEndpoints — used as a fallback; primary path uses the saga
+ *   via IRequestClient<V1_InitiateBookingCommand>.
+ *
+ * WHY THIS APPROACH:
+ *   Same four-step flow as PersistAppointmentActivity but executed synchronously
+ *   inside the MediatR pipeline, which adds logging, validation, and performance
+ *   monitoring for free.
+ */
 public sealed record BookAppointmentCommand(
     Guid PatientId,
     Guid SlotId,

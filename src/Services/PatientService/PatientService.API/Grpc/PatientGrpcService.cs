@@ -5,6 +5,23 @@ using PatientService.Application.Queries.GetPatientById;
 
 namespace PatientService.API.Grpc;
 
+/*
+ * PatientGrpcService
+ * ------------------
+ * gRPC service implementation for inter-service patient lookups.
+ *
+ * WHO USES IT:
+ *   AppointmentService: VerifyPatientActivity calls GetPatientById to confirm
+ *     a patient exists and fetch their display name before booking.
+ *   NotificationService: NotificationPatientGrpcClient calls GetPatientById to
+ *     resolve the patient's contact email for sending appointment notifications.
+ *
+ * WHY THIS APPROACH:
+ *   gRPC is used for synchronous internal service-to-service communication
+ *   (strongly-typed, binary-efficient protobuf) while the public REST API handles
+ *   browser traffic.  MediatR integration re-uses the same query handlers and
+ *   caching layer as the REST endpoints.
+ */
 public sealed class PatientGrpcService(ISender sender) : PatientGrpc.PatientGrpcBase
 {
     public override async Task<PatientResponse> GetPatientById(

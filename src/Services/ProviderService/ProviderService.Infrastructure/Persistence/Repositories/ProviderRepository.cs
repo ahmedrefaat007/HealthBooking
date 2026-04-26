@@ -4,6 +4,20 @@ using ProviderService.Domain.Entities;
 
 namespace ProviderService.Infrastructure.Persistence.Repositories;
 
+/*
+ * ProviderRepository
+ * ------------------
+ * EF Core implementation of IProviderRepository.
+ *
+ * WHO USES IT:
+ *   RegisterProviderCommandHandler, DefineAvailabilityCommandHandler,
+ *   GetProviderByIdQueryHandler.
+ *
+ * WHY THIS APPROACH:
+ *   Thin repository delegates directly to EF Core; license trimming is
+ *   consistent with how the domain stores values, preventing false-duplicate
+ *   checks due to whitespace differences.
+ */
 public sealed class ProviderRepository(ProviderDbContext db) : IProviderRepository
 {
     public Task<Provider?> GetByIdAsync(Guid id, CancellationToken ct = default) =>

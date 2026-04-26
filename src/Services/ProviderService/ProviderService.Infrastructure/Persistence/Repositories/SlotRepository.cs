@@ -5,6 +5,21 @@ using ProviderService.Domain.Enums;
 
 namespace ProviderService.Infrastructure.Persistence.Repositories;
 
+/*
+ * SlotRepository
+ * --------------
+ * EF Core implementation of ISlotRepository for AvailabilitySlot queries.
+ *
+ * WHO USES IT:
+ *   DefineAvailabilityCommandHandler: AddRangeAsync for new slots.
+ *   GetProviderSlotsQueryHandler: GetAvailableByProviderAsync.
+ *   AppointmentBookedConsumer, SlotReleasedConsumer: GetByIdAsync + SaveChanges.
+ *
+ * WHY THIS APPROACH:
+ *   ContinueWith<IReadOnlyList<T>> cast adapts the EF List<T> result to the
+ *   read-only interface without an extra allocation, keeping the repository
+ *   contract honest about mutation semantics.
+ */
 public sealed class SlotRepository(ProviderDbContext db) : ISlotRepository
 {
     public Task<AvailabilitySlot?> GetByIdAsync(Guid id, CancellationToken ct = default) =>

@@ -6,6 +6,24 @@ using ProviderService.Application.Queries.GetProviderSlots;
 
 namespace ProviderService.API.Endpoints;
 
+/*
+ * ProvidersEndpoints
+ * ------------------
+ * Maps all HTTP endpoints for the ProviderService REST API using Minimal APIs.
+ *
+ * ENDPOINTS:
+ *   POST   /api/providers/register             — Register a new provider (auth).
+ *   GET    /api/providers/{id}                  — Retrieve provider by ID (auth).
+ *   GET    /api/providers/{id}/slots            — List available slots (auth).
+ *   POST   /api/providers/{id}/availability     — Define daily availability (auth).
+ *
+ * WHO USES IT:
+ *   Program.cs: app.MapProviderEndpoints().
+ *   ApiGateway: proxies /api/providers/** to this service.
+ *
+ * WHY MINIMAL APIS:
+ *   Lightweight, no controller boilerplate, co-located routing logic.
+ */
 public static class ProvidersEndpoints
 {
     public static IEndpointRouteBuilder MapProviderEndpoints(this IEndpointRouteBuilder app)

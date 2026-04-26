@@ -5,6 +5,24 @@ using ProviderService.Domain.ValueObjects;
 
 namespace ProviderService.Domain.Entities;
 
+/*
+ * Provider
+ * --------
+ * DDD aggregate root representing a healthcare provider (doctor, specialist, etc.).
+ * Owns a collection of AvailabilitySlots and enforces scheduling invariants.
+ *
+ * WHO USES IT:
+ *   - RegisterProviderCommandHandler: creates providers via Provider.Register().
+ *   - DefineAvailabilityCommandHandler: calls DefineDailyAvailability().
+ *   - ProviderRepository: persists and retrieves Provider instances.
+ *   - ProviderGrpcService: queries slots for AppointmentService.
+ *
+ * WHY THIS APPROACH:
+ *   The aggregate root owns its slots collection, so slot creation and overlap
+ *   detection happen inside the domain, not in a service or handler.  This
+ *   guarantees the 30-minute non-overlapping scheduling invariant is always
+ *   enforced regardless of how DefineDailyAvailability is called.
+ */
 public sealed class Provider : AggregateRoot
 {
     public Guid Id { get; private set; }
@@ -16,8 +34,15 @@ public sealed class Provider : AggregateRoot
     private readonly List<AvailabilitySlot> _slots = [];
     public IReadOnlyList<AvailabilitySlot> Slots => _slots.AsReadOnly();
 
+    /* EF Core materialisation constructor; private to prevent bypassing Register(). */
     private Provider() { }
 
+    /*
+     * Register
+     * --------
+     * Factory method creating a new Provider after validating all inputs.
+     * Raises ProviderRegisteredEvent to notify downstream consumers.
+     */
     public static Provider Register(
         string firstName, string lastName, string specialty, string licenseNumber)
     {

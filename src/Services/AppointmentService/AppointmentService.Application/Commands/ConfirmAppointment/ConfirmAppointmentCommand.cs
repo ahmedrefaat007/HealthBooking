@@ -4,6 +4,20 @@ using MediatR;
 
 namespace AppointmentService.Application.Commands.ConfirmAppointment;
 
+/*
+ * ConfirmAppointmentCommand
+ * -------------------------
+ * MediatR command that transitions an appointment from Booked → Confirmed.
+ *
+ * WHO USES IT:
+ *   AppointmentsEndpoints: POST /api/appointments/{id}/confirm.
+ *   Typically called by the provider or admin after reviewing the booking.
+ *
+ * WHY THIS APPROACH:
+ *   Confirmation is a distinct lifecycle step so providers can review bookings
+ *   before confirming.  Raises AppointmentConfirmedDomainEvent for
+ *   notification consumers.
+ */
 public sealed record ConfirmAppointmentCommand(
     Guid AppointmentId,
     string CallerUserId) : IRequest;

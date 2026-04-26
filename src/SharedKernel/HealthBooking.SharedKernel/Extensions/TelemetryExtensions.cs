@@ -6,18 +6,27 @@ using OpenTelemetry.Trace;
 
 namespace HealthBooking.SharedKernel.Extensions;
 
-/// <summary>
-/// Registers OpenTelemetry distributed tracing, pre-configured for the HealthBooking stack.
-///
-/// Instrumented sources per service:
-///   • ASP.NET Core  (incoming HTTP + gRPC server requests)
-///   • HttpClient    (outgoing HTTP + gRPC-client calls)
-///   • MassTransit   (publish / consume spans via built-in ActivitySource)
-///
-/// Traces are exported via OTLP to Jaeger (or any OTLP-compatible backend).
-/// The endpoint is resolved from config key "OtelExporter:Endpoint"
-/// (defaults to http://localhost:4317 for local development).
-/// </summary>
+/*
+ * TelemetryExtensions
+ * -------------------
+ * Shared extension method that registers OpenTelemetry distributed tracing
+ * pre-configured for the HealthBooking microservices.
+ *
+ * INSTRUMENTED SOURCES:
+ *   - ASP.NET Core  — incoming HTTP + gRPC server requests.
+ *   - HttpClient    — outgoing HTTP + gRPC-client calls.
+ *   - MassTransit   — publish/consume spans via the built-in ActivitySource.
+ *
+ * WHO USES IT:
+ *   Every service's Program.cs calls AddHealthBookingTelemetry(serviceName, config)
+ *   to register telemetry.
+ *
+ * WHY THIS APPROACH:
+ *   Centralising OpenTelemetry setup in SharedKernel ensures all services export
+ *   the same span attributes and resource metadata so traces can be correlated in
+ *   Jaeger (or any OTLP backend).  Health-check paths are filtered out to reduce
+ *   span noise.  The endpoint defaults to localhost:4317 for local Docker Compose.
+ */
 public static class TelemetryExtensions
 {
     public static IServiceCollection AddHealthBookingTelemetry(

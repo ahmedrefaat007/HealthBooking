@@ -5,6 +5,26 @@ using MediatR;
 
 namespace AppointmentService.Application.Commands.RescheduleAppointment;
 
+/*
+ * RescheduleAppointmentCommand
+ * ----------------------------
+ * MediatR command that moves an appointment to a new slot with compensation.
+ *
+ * WHO USES IT:
+ *   AppointmentsEndpoints: PUT /api/appointments/{id}/reschedule.
+ *
+ * FLOW:
+ *   1. Verify new slot is Available.
+ *   2. Lock new slot via gRPC.
+ *   3. Call appointment.Reschedule() (raises AppointmentRescheduledDomainEvent).
+ *   4. Persist (outbox captures event).
+ *   Compensation: if persist fails, release the new slot.
+ *   5. Release old slot (best-effort).
+ *
+ * WHY THIS APPROACH:
+ *   Two-phase lock-then-persist mirrors the saga pattern for consistency,
+ *   ensuring no slot is left in a permanently-locked state on failure.
+ */
 public sealed record RescheduleAppointmentCommand(
     Guid AppointmentId,
     Guid NewSlotId,

@@ -6,11 +6,24 @@ using NotificationService.Domain.Entities;
 
 namespace NotificationService.Application.Consumers;
 
-/// <summary>
-/// Subscribes to V1_AppointmentBookedEvent from RabbitMQ and sends a
-/// booking confirmation email to the patient.  Idempotent: if a log
-/// entry already exists for (AppointmentId, EventType) we skip sending.
-/// </summary>
+/*
+ * AppointmentBookedConsumer
+ * -------------------------
+ * MassTransit IConsumer that handles V1_AppointmentBookedEvent from RabbitMQ
+ * and sends a booking confirmation email to the patient.
+ *
+ * WHO USES IT:
+ *   MassTransit bus: auto-discovered and subscribed to the
+ *   appointment.booked exchange in Program.cs.
+ *
+ * IDEMPOTENCY:
+ *   Checks (AppointmentId, EventType) existence before sending to prevent
+ *   duplicate emails on message redelivery or retry.
+ *
+ * FALLBACK:
+ *   If IPatientEmailClient fails (gRPC unavailable or 404), uses a
+ *   placeholder email so the notification is still logged.
+ */
 public sealed class AppointmentBookedConsumer(
     INotificationLogRepository repository,
     IEmailService emailService,

@@ -2,6 +2,19 @@ using HealthBooking.SharedKernel.Domain;
 
 namespace AppointmentService.Domain.Events;
 
+/*
+ * AppointmentEvents
+ * -----------------
+ * Domain event records raised by the Appointment aggregate on each state transition.
+ * All events implement IDomainEvent and are captured by OutboxPublishingInterceptor
+ * during SaveChanges, then published to RabbitMQ by OutboxProcessor.
+ *
+ * WHO USES IT:
+ *   - NotificationService consumers (Booked, Cancelled, Rescheduled): send emails.
+ *   - ProviderService consumers (Booked, SlotReleased via Cancelled/Rescheduled):
+ *     update slot status.
+ *   - Audit/analytics services: build event-sourced history.
+ */
 public sealed record AppointmentBookedEvent(
     Guid AppointmentId,
     Guid PatientId,

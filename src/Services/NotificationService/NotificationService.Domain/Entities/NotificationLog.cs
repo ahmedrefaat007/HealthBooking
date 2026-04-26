@@ -2,6 +2,26 @@ using HealthBooking.SharedKernel.Domain;
 
 namespace NotificationService.Domain.Entities;
 
+/*
+ * NotificationLog
+ * ---------------
+ * Domain entity tracking every email notification attempt for an appointment event.
+ * Serves as both the delivery audit trail and the idempotency guard.
+ *
+ * WHO USES IT:
+ *   AppointmentBookedConsumer, AppointmentCancelledConsumer,
+ *   AppointmentRescheduledConsumer: create logs and call MarkSent/MarkFailed.
+ *   NotificationLogRepository: persists and queries logs.
+ *
+ * IDEMPOTENCY:
+ *   (CorrelationId, EventType) forms a composite natural key queried by
+ *   ExistsByCorrelationAndTypeAsync; no duplicate emails are sent for the same event.
+ *
+ * WHY THIS APPROACH:
+ *   Logging every notification attempt (including failures with RetryCount) gives
+ *   full observability without a separate event-sourcing store.  MarkSent/MarkFailed
+ *   keep state transitions inside the entity, following DDD encapsulation.
+ */
 public sealed class NotificationLog : AuditableEntity
 {
     public Guid Id { get; private set; }
@@ -15,6 +35,7 @@ public sealed class NotificationLog : AuditableEntity
     public int RetryCount { get; private set; }
     public DateTimeOffset SentAt { get; private set; }
 
+    /* EF Core materialisation constructor. */
     private NotificationLog() { }
 
     public static NotificationLog Create(

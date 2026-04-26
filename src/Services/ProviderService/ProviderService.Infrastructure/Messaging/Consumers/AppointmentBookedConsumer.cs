@@ -5,10 +5,21 @@ using ProviderService.Application.Interfaces;
 
 namespace ProviderService.Infrastructure.Messaging.Consumers;
 
-/// <summary>
-/// Subscribes to V1_AppointmentBookedEvent and transitions the slot from Locked → Booked.
-/// Idempotent: if AppointmentId already matches slot.AppointmentId the slot is already Booked.
-/// </summary>
+/*
+ * AppointmentBookedConsumer
+ * -------------------------
+ * MassTransit consumer that transitions a slot from Locked → Booked when an
+ * appointment is confirmed and the V1_AppointmentBookedEvent is received.
+ *
+ * WHO USES IT:
+ *   MassTransit RabbitMQ subscriber configured in Program.cs.
+ *   Published by AppointmentService OutboxProcessor after an appointment is booked.
+ *
+ * WHY THIS APPROACH:
+ *   Idempotent check on AppointmentId prevents double-booking if the event is
+ *   redelivered (at-least-once delivery guarantee of the outbox/MassTransit).
+ *   Redis cache invalidation ensures subsequent slot queries reflect the new status.
+ */
 public sealed class AppointmentBookedConsumer(
     ISlotRepository slots,
     ICacheService cache,

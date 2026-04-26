@@ -5,6 +5,19 @@ using ProviderService.Domain.Entities;
 
 namespace ProviderService.Application.Commands.RegisterProvider;
 
+/*
+ * RegisterProviderCommand / RegisterProviderResult
+ * -------------------------------------------------
+ * MediatR command that creates a new healthcare provider record.
+ *
+ * WHO USES IT:
+ *   ProvidersEndpoints: POST /api/providers/register (auth required).
+ *
+ * WHY THIS APPROACH:
+ *   License uniqueness is enforced before delegating to the domain factory,
+ *   keeping duplicate-check logic at the application layer (where DB queries
+ *   are appropriate) rather than inside the domain model.
+ */
 public sealed record RegisterProviderCommand(
     string FirstName,
     string LastName,
@@ -13,6 +26,11 @@ public sealed record RegisterProviderCommand(
 
 public sealed record RegisterProviderResult(Guid ProviderId);
 
+/*
+ * RegisterProviderCommandValidator
+ * ---------------------------------
+ * FluentValidation validator run by MediatR ValidationBehavior.
+ */
 public sealed class RegisterProviderCommandValidator : AbstractValidator<RegisterProviderCommand>
 {
     public RegisterProviderCommandValidator()
@@ -24,6 +42,13 @@ public sealed class RegisterProviderCommandValidator : AbstractValidator<Registe
     }
 }
 
+/*
+ * RegisterProviderCommandHandler
+ * --------------------------------
+ * 1. Checks license uniqueness.
+ * 2. Calls Provider.Register() (raises ProviderRegisteredEvent).
+ * 3. Persists via repository (outbox captures event in same transaction).
+ */
 public sealed class RegisterProviderCommandHandler(IProviderRepository repository)
     : IRequestHandler<RegisterProviderCommand, RegisterProviderResult>
 {

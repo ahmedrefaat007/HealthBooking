@@ -7,6 +7,32 @@ using Serilog;
 using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
+/*
+ * IdentityServer / Program.cs
+ * ---------------------------
+ * Configures and launches the OpenIddict-based OAuth 2.0 token issuer for
+ * the HealthBooking platform.
+ *
+ * WHO USES IT:
+ *   - ApiGateway: JWT Bearer validation.
+ *   - PatientService, ProviderService, AppointmentService: validate Bearer tokens.
+ *   - patient-spa client: password-flow token acquisition.
+ *   - api-gateway + admin-client: client-credentials token acquisition.
+ *
+ * FLOWS SUPPORTED:
+ *   - Client Credentials: service-to-service (subject = client_id).
+ *   - Resource Owner Password: dev UI login; patient_id claim embedded for
+ *     booking saga identity propagation.
+ *
+ * SCOPES → AUDIENCES:
+ *   Seven scopes mapped to four resource audiences so downstream services
+ *   only receive tokens scoped to them.
+ *
+ * WHY OPENIDDICT:
+ *   Fully integrated with EF Core for client/scope persistence; standard
+ *   JWT output compatible with Microsoft.AspNetCore.Authentication.JwtBearer;
+ *   no external IdP infrastructure required for development.
+ */
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();

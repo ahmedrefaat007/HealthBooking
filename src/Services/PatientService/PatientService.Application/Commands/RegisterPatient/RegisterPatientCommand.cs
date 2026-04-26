@@ -5,6 +5,19 @@ using PatientService.Domain.Entities;
 
 namespace PatientService.Application.Commands.RegisterPatient;
 
+/*
+ * RegisterPatientCommand / RegisterPatientResult
+ * -----------------------------------------------
+ * MediatR command that creates a new patient record and provisions an identity.
+ *
+ * WHO USES IT:
+ *   PatientsEndpoints: POST /api/patients/register (anonymous, public endpoint).
+ *
+ * WHY THIS APPROACH:
+ *   CQRS command encapsulates all inputs for a single write operation, enabling
+ *   the MediatR pipeline (LoggingBehavior → ValidationBehavior → Handler) to
+ *   validate, log, and execute the use-case without controller logic.
+ */
 public sealed record RegisterPatientCommand(
     string FirstName,
     string LastName,
@@ -14,6 +27,12 @@ public sealed record RegisterPatientCommand(
 
 public sealed record RegisterPatientResult(Guid PatientId);
 
+/*
+ * RegisterPatientCommandValidator
+ * --------------------------------
+ * FluentValidation validator automatically discovered and run by ValidationBehavior.
+ * Guards input length/format before the handler reaches the domain or database.
+ */
 public sealed class RegisterPatientCommandValidator : AbstractValidator<RegisterPatientCommand>
 {
     public RegisterPatientCommandValidator()
@@ -27,6 +46,15 @@ public sealed class RegisterPatientCommandValidator : AbstractValidator<Register
     }
 }
 
+/*
+ * RegisterPatientCommandHandler
+ * ------------------------------
+ * 1. Checks email uniqueness to prevent duplicate registrations.
+ * 2. Delegates creation to Patient.Register() (enforces domain invariants).
+ * 3. Persists the patient (AuditInterceptor + OutboxPublishingInterceptor run).
+ * 4. Calls IdentityProvisioningService to create the user in IdentityServer
+ *    (non-fatal — failure does not roll back the patient record).
+ */
 public sealed class RegisterPatientCommandHandler(
     IPatientRepository repository,
     IIdentityProvisioningService identityService)

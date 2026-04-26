@@ -9,6 +9,28 @@ using System.Text.Json;
 
 namespace AppointmentService.Infrastructure.BackgroundServices;
 
+/*
+ * OutboxProcessor
+ * ---------------
+ * IHostedService that polls the OutboxMessage table every 5 seconds and publishes
+ * Pending messages to RabbitMQ via MassTransit IBus.
+ *
+ * WHO USES IT:
+ *   Program.cs: AddHostedService<OutboxProcessor>().
+ *   The processor reads only AppointmentService's OutboxMessages table.
+ *
+ * BEHAVIOUR:
+ *   - Takes batches of 20 to limit memory and transaction size.
+ *   - Marks messages Published (with timestamp) on success.
+ *   - Increments RetryCount on failure; after 5 retries marks Failed (dead letter).
+ *   - Swallows OperationCanceledException on shutdown for clean teardown.
+ *
+ * WHY THIS APPROACH:
+ *   Polling outbox provides reliable at-least-once delivery independent of the
+ *   message broker.  Batch size and interval are tuned for low latency (5 s) with
+ *   bounded DB read load.  Using IServiceScopeFactory ensures each batch gets a
+ *   fresh scoped DbContext and IBus, preventing EF context reuse across batches.
+ */
 public sealed class OutboxProcessor(
     IServiceScopeFactory scopeFactory,
     ILogger<OutboxProcessor> logger)

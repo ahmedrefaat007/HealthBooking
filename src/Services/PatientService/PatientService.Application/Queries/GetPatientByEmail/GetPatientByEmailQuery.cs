@@ -4,6 +4,19 @@ using PatientService.Application.Interfaces;
 
 namespace PatientService.Application.Queries.GetPatientByEmail;
 
+/*
+ * GetPatientByEmailQuery / GetPatientByEmailQueryHandler
+ * -------------------------------------------------------
+ * MediatR read-only query that returns a PatientDto for a given e-mail address.
+ *
+ * WHO USES IT:
+ *   PatientsEndpoints: GET /api/patients/me — resolves the logged-in patient
+ *   from the email claim in their JWT.
+ *   NotificationService consumers: may look up patients by email for routing.
+ *
+ * WHY THIS APPROACH:
+ *   Separate query keeps email-based lookup isolated and independently testable.
+ */
 public sealed record GetPatientByEmailQuery(string Email) : IRequest<PatientDto?>;
 
 public sealed class GetPatientByEmailQueryHandler(IPatientRepository repository)

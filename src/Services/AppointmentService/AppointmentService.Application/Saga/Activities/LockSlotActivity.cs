@@ -5,13 +5,25 @@ using MassTransit;
 
 namespace AppointmentService.Application.Saga.Activities;
 
-/// <summary>
-/// Step 2: Locks the availability slot in ProviderService via gRPC.
-/// Sets saga.SlotWasLocked = true on success so the Faulted handler knows to compensate.
-///
-/// Faulted: if the slot was already locked (i.e., a LATER activity threw),
-/// releases it via gRPC to roll back the side-effect.
-/// </summary>
+/*
+ * LockSlotActivity
+ * ----------------
+ * Saga step 2: Locks the availability slot in ProviderService via gRPC.
+ *
+ * WHO USES IT:
+ *   BookingStateMachine: second activity in the Initially handler chain.
+ *
+ * COMPENSATION (Faulted):
+ *   If any later activity throws (e.g., PersistAppointmentActivity), Faulted
+ *   is called in reverse order.  If SlotWasLocked is true, ReleaseSlot is called
+ *   to free the slot so other patients can book it.
+ *
+ * WHY THIS APPROACH:
+ *   Keeping compensation logic in the activity that performed the side-effect
+ *   (locking) is the standard Saga compensation pattern.  The flag SlotWasLocked
+ *   avoids calling ReleaseSlot if the lock itself failed (which would be a no-op
+ *   or error on ProviderService).
+ */
 public sealed class LockSlotActivity(IProviderSlotGrpcClient slotClient)
     : IStateMachineActivity<BookingState, V1_InitiateBookingCommand>
 {

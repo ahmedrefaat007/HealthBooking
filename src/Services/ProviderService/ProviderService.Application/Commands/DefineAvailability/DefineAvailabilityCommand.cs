@@ -5,6 +5,19 @@ using ProviderService.Application.Interfaces;
 
 namespace ProviderService.Application.Commands.DefineAvailability;
 
+/*
+ * DefineAvailabilityCommand
+ * -------------------------
+ * Creates 30-minute AvailabilitySlots for a provider on a given date.
+ *
+ * WHO USES IT:
+ *   ProvidersEndpoints: POST /api/providers/{id}/availability.
+ *
+ * WHY THIS APPROACH:
+ *   Slot generation logic lives in Provider.DefineDailyAvailability() (domain);
+ *   the handler's role is orchestration: load aggregate, call domain method,
+ *   persist, invalidate cache, and return DTOs to the caller.
+ */
 public sealed record DefineAvailabilityCommand(
     Guid ProviderId,
     DateOnly Date,

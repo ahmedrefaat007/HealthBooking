@@ -6,6 +6,20 @@ using ProviderService.Infrastructure.Persistence.Interceptors;
 
 namespace ProviderService.Infrastructure.Persistence;
 
+/*
+ * ProviderDbContext
+ * -----------------
+ * EF Core DbContext for the ProviderService bounded context.
+ *
+ * WHO USES IT:
+ *   ProviderRepository, SlotRepository, ProviderGrpcService (direct DbContext
+ *   access for optimistic-concurrency slot operations).
+ *
+ * WHY THIS APPROACH:
+ *   Separate DbContext per service maintains bounded-context isolation.
+ *   Both interceptors (audit stamps + outbox domain events) are registered
+ *   in OnConfiguring so they automatically fire on every SaveChanges.
+ */
 public sealed class ProviderDbContext(
     DbContextOptions<ProviderDbContext> options,
     AuditInterceptor auditInterceptor,

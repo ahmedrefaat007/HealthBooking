@@ -4,6 +4,15 @@ using MediatR;
 
 namespace AppointmentService.Application.Queries.GetPatientAppointments;
 
+/*
+ * GetPatientAppointmentsQuery
+ * ---------------------------
+ * MediatR read-only query returning all appointments for a given patient,
+ * ordered by creation date descending (most recent first).
+ *
+ * WHO USES IT:
+ *   AppointmentsEndpoints: GET /api/appointments/patient/{patientId}.
+ */
 public sealed record GetPatientAppointmentsQuery(Guid PatientId) : IRequest<IReadOnlyList<AppointmentDto>>;
 
 public sealed class GetPatientAppointmentsQueryHandler(IAppointmentRepository appointments)

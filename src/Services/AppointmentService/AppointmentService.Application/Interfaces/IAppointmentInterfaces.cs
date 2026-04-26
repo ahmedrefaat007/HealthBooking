@@ -2,6 +2,15 @@ using AppointmentService.Domain.Entities;
 
 namespace AppointmentService.Application.Interfaces;
 
+/*
+ * IAppointmentRepository
+ * ----------------------
+ * Persistence abstraction for Appointment aggregates.
+ *
+ * WHO USES IT:
+ *   All command handlers, query handlers, and AppointmentsEndpoints
+ *   idempotency pre-check.
+ */
 public interface IAppointmentRepository
 {
     Task<Appointment?> GetByIdAsync(Guid id, CancellationToken ct = default);

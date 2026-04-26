@@ -5,6 +5,20 @@ using PatientService.Infrastructure.Persistence;
 
 namespace PatientService.Infrastructure.Persistence.Repositories;
 
+/*
+ * PatientRepository
+ * -----------------
+ * EF Core implementation of IPatientRepository.
+ *
+ * WHO USES IT:
+ *   RegisterPatientCommandHandler, UpdatePatientProfileCommandHandler,
+ *   GetPatientByIdQueryHandler, GetPatientByEmailQueryHandler.
+ *
+ * WHY THIS APPROACH:
+ *   Thin repository; each method is a single EF Core query or operation.
+ *   Email lookup normalises to lower-case to match the Email value-object
+ *   normalisation applied on write, ensuring case-insensitive uniqueness.
+ */
 public sealed class PatientRepository(PatientDbContext db) : IPatientRepository
 {
     public async Task<Patient?> GetByIdAsync(Guid id, CancellationToken ct = default)

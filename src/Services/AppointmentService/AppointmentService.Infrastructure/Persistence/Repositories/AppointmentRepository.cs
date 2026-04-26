@@ -4,6 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentService.Infrastructure.Persistence.Repositories;
 
+/*
+ * AppointmentRepository
+ * ---------------------
+ * EF Core implementation of IAppointmentRepository.
+ *
+ * WHO USES IT:
+ *   All command and query handlers that need to read or persist appointments.
+ *
+ * WHY THIS APPROACH:
+ *   GetByPatientIdAsync orders by the shadow-property CreatedAt (set by AuditInterceptor)
+ *   so the patient's appointment history is always sorted most-recent-first without
+ *   adding a public property to the domain entity.
+ */
 public sealed class AppointmentRepository(AppointmentDbContext context)
     : IAppointmentRepository
 {

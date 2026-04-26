@@ -6,9 +6,19 @@ using NotificationService.Domain.Entities;
 
 namespace NotificationService.Application.Consumers;
 
-/// <summary>
-/// Subscribes to V1_AppointmentCancelledEvent and sends a cancellation email.
-/// </summary>
+/*
+ * AppointmentCancelledConsumer
+ * ----------------------------
+ * MassTransit IConsumer handling V1_AppointmentCancelledEvent to notify
+ * the patient their appointment has been cancelled.
+ *
+ * WHO USES IT:
+ *   MassTransit bus: subscribed to the appointment.cancelled exchange.
+ *
+ * IDEMPOTENCY + FALLBACK:
+ *   Same pattern as AppointmentBookedConsumer: deduplication guard and
+ *   placeholder email fallback on gRPC failure.
+ */
 public sealed class AppointmentCancelledConsumer(
     INotificationLogRepository repository,
     IEmailService emailService,

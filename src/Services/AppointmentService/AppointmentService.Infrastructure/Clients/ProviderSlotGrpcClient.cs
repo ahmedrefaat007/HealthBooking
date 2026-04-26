@@ -5,6 +5,20 @@ using HealthBooking.Contracts.Grpc;
 
 namespace AppointmentService.Infrastructure.Clients;
 
+/*
+ * ProviderSlotGrpcClient
+ * ----------------------
+ * IProviderSlotGrpcClient implementation wrapping three ProviderGrpc calls.
+ *
+ * WHO USES IT:
+ *   LockSlotActivity, PersistAppointmentActivity (GetSlotByIdAsync),
+ *   CancelAppointmentCommandHandler, RescheduleAppointmentCommandHandler.
+ *
+ * CONCURRENCY HANDLING:
+ *   LockSlotAsync maps gRPC StatusCode.Aborted (DbUpdateConcurrencyException
+ *   on ProviderService) to SlotConflictException so the saga and handlers can
+ *   handle the conflict cleanly without leaking gRPC details to callers.
+ */
 public sealed class ProviderSlotGrpcClient(ProviderGrpc.ProviderGrpcClient grpcClient)
     : IProviderSlotGrpcClient
 {

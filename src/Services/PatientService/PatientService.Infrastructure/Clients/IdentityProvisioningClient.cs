@@ -5,6 +5,22 @@ using PatientService.Application.Interfaces;
 
 namespace PatientService.Infrastructure.Clients;
 
+/*
+ * IdentityProvisioningClient
+ * --------------------------
+ * HTTP client that calls IdentityServer's internal /provision-user endpoint
+ * to create an OpenIddict user account after patient registration.
+ *
+ * WHO USES IT:
+ *   RegisterPatientCommandHandler: called after the patient DB record is saved.
+ *
+ * WHY THIS APPROACH:
+ *   Fire-and-forget pattern with swallowed HttpRequestException keeps patient
+ *   registration atomic (patient saved regardless of identity service health).
+ *   In production this should publish a retryable message to a DLQ instead of
+ *   silently failing.  The named HttpClient ("identity-provisioning") picks up
+ *   the Polly resilience pipeline registered in Program.cs.
+ */
 public sealed class IdentityProvisioningClient(IHttpClientFactory factory)
     : IIdentityProvisioningService
 {

@@ -5,14 +5,22 @@ using MassTransit;
 
 namespace AppointmentService.Application.Saga.Activities;
 
-/// <summary>
-/// Step 3: Persists the Appointment entity and the idempotency key atomically.
-/// If an idempotency-key clash is detected (duplicate request), returns the
-/// existing appointment ID instead of creating a new one.
-///
-/// Faulted: nothing to compensate here — the slot will be released by
-/// LockSlotActivity.Faulted which runs after this in the rollback chain.
-/// </summary>
+/*
+ * PersistAppointmentActivity
+ * --------------------------
+ * Saga step 3: Persists the Appointment entity and idempotency key atomically.
+ *
+ * WHO USES IT:
+ *   BookingStateMachine: third and final activity in the Initially handler chain.
+ *
+ * IDEMPOTENCY:
+ *   Checks IIdempotencyRepository first.  If the key already exists, the existing
+ *   AppointmentId is re-used and no new entity is created.
+ *
+ * COMPENSATION (Faulted):
+ *   No compensation here.  If persist fails before the entity is written, there is
+ *   nothing to roll back.  Slot release is handled by LockSlotActivity.Faulted.
+ */
 public sealed class PersistAppointmentActivity(
     IAppointmentRepository appointments,
     IIdempotencyRepository idempotency,
