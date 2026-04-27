@@ -19,7 +19,7 @@ namespace ProviderService.Domain.Enums;
 public enum SlotStatus
 {
     Available = 0,  /* Slot is open for booking. */
-    Locked    = 1,  /* Reserved by an in-flight booking saga (not yet confirmed). */
-    Booked    = 2,  /* Confirmed appointment assigned. */
+    Locked = 1,  /* Reserved by an in-flight booking saga (not yet confirmed). */
+    Booked = 2,  /* Confirmed appointment assigned. */
     Cancelled = 3   /* Permanently removed from circulation. */
 }

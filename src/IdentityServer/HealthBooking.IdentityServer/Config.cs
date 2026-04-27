@@ -9,7 +9,7 @@ namespace HealthBooking.IdentityServer;
  * Static configuration catalogue for all OpenIddict scopes and OAuth2 clients.
  *
  * WHO USES IT:
- *   SeedData.InitializeAsync() — iterates Scopes and Clients to upsert
+ *   SeedData.InitializeAsync() � iterates Scopes and Clients to upsert
  *   records into the OpenIddict tables on every startup.
  *
  * WHY THIS APPROACH:
@@ -19,8 +19,6 @@ namespace HealthBooking.IdentityServer;
  */
 public static class Config
 {
-    // ── Scopes → Audiences mapping ————————————————————————————————————————————
-    // Each scope defines which API resource (audience) it grants access to.
     /*
      * Scopes
      * ------
@@ -32,42 +30,41 @@ public static class Config
     [
         new OpenIddictScopeDescriptor
         {
-            Name      = "healthbooking-api",
+            Name = "healthbooking-api",
             Resources = { "healthbooking-api" }
         },
         new OpenIddictScopeDescriptor
         {
-            Name      = "patient:read",
+            Name = "patient:read",
             Resources = { "patient-service" }
         },
         new OpenIddictScopeDescriptor
         {
-            Name      = "patient:write",
+            Name = "patient:write",
             Resources = { "patient-service" }
         },
         new OpenIddictScopeDescriptor
         {
-            Name      = "provider:read",
+            Name = "provider:read",
             Resources = { "provider-service" }
         },
         new OpenIddictScopeDescriptor
         {
-            Name      = "provider:write",
+            Name = "provider:write",
             Resources = { "provider-service" }
         },
         new OpenIddictScopeDescriptor
         {
-            Name      = "appointment:read",
+            Name = "appointment:read",
             Resources = { "appointment-service" }
         },
         new OpenIddictScopeDescriptor
         {
-            Name      = "appointment:write",
+            Name = "appointment:write",
             Resources = { "appointment-service" }
         }
     ];
 
-    // ── Clients ——————————————————————————————————————————————————————
     /*
      * Clients
      * -------
@@ -81,13 +78,13 @@ public static class Config
      */
     public static IEnumerable<OpenIddictApplicationDescriptor> Clients =>
     [
-        // API Gateway — machine-to-machine
+        // API Gateway � machine-to-machine
         new OpenIddictApplicationDescriptor
         {
-            ClientId     = "api-gateway",
+            ClientId = "api-gateway",
             ClientSecret = "api-gateway-secret",
-            DisplayName  = "API Gateway",
-            Permissions  =
+            DisplayName = "API Gateway",
+            Permissions =
             {
                 Permissions.Endpoints.Token,
                 Permissions.GrantTypes.ClientCredentials,
@@ -95,13 +92,13 @@ public static class Config
             }
         },
 
-        // Patient SPA — password flow for end-users
+        // Patient SPA � password flow for end-users
         new OpenIddictApplicationDescriptor
         {
-            ClientId     = "patient-spa",
+            ClientId = "patient-spa",
             ClientSecret = "patient-spa-secret",
-            DisplayName  = "Patient SPA",
-            Permissions  =
+            DisplayName = "Patient SPA",
+            Permissions =
             {
                 Permissions.Endpoints.Token,
                 Permissions.GrantTypes.Password,
@@ -118,118 +115,13 @@ public static class Config
             }
         },
 
-        // Admin client — full access password flow
+        // Admin client � full access password flow
         new OpenIddictApplicationDescriptor
         {
-            ClientId     = "admin-client",
+            ClientId = "admin-client",
             ClientSecret = "admin-client-secret",
-            DisplayName  = "Admin Client",
-            Permissions  =
-            {
-                Permissions.Endpoints.Token,
-                Permissions.GrantTypes.Password,
-                Permissions.GrantTypes.ClientCredentials,
-                Permissions.GrantTypes.RefreshToken,
-                Permissions.Prefixes.Scope + "openid",
-                Permissions.Prefixes.Scope + "profile",
-                Permissions.Prefixes.Scope + "email",
-                Permissions.Prefixes.Scope + "offline_access",
-                Permissions.Prefixes.Scope + "healthbooking-api",
-                Permissions.Prefixes.Scope + "patient:read",
-                Permissions.Prefixes.Scope + "patient:write",
-                Permissions.Prefixes.Scope + "provider:read",
-                Permissions.Prefixes.Scope + "provider:write",
-                Permissions.Prefixes.Scope + "appointment:read",
-                Permissions.Prefixes.Scope + "appointment:write"
-            }
-        }
-    ];
-}
-    [
-        new OpenIddictScopeDescriptor
-        {
-            Name      = "healthbooking-api",
-            Resources = { "healthbooking-api" }
-        },
-        new OpenIddictScopeDescriptor
-        {
-            Name      = "patient:read",
-            Resources = { "patient-service" }
-        },
-        new OpenIddictScopeDescriptor
-        {
-            Name      = "patient:write",
-            Resources = { "patient-service" }
-        },
-        new OpenIddictScopeDescriptor
-        {
-            Name      = "provider:read",
-            Resources = { "provider-service" }
-        },
-        new OpenIddictScopeDescriptor
-        {
-            Name      = "provider:write",
-            Resources = { "provider-service" }
-        },
-        new OpenIddictScopeDescriptor
-        {
-            Name      = "appointment:read",
-            Resources = { "appointment-service" }
-        },
-        new OpenIddictScopeDescriptor
-        {
-            Name      = "appointment:write",
-            Resources = { "appointment-service" }
-        }
-    ];
-
-    // ── Clients ───────────────────────────────────────────────────────────────
-    public static IEnumerable<OpenIddictApplicationDescriptor> Clients =>
-    [
-        // API Gateway — machine-to-machine
-        new OpenIddictApplicationDescriptor
-        {
-            ClientId     = "api-gateway",
-            ClientSecret = "api-gateway-secret",
-            DisplayName  = "API Gateway",
-            Permissions  =
-            {
-                Permissions.Endpoints.Token,
-                Permissions.GrantTypes.ClientCredentials,
-                Permissions.Prefixes.Scope + "healthbooking-api"
-            }
-        },
-
-        // Patient SPA — password flow for end-users
-        new OpenIddictApplicationDescriptor
-        {
-            ClientId     = "patient-spa",
-            ClientSecret = "patient-spa-secret",
-            DisplayName  = "Patient SPA",
-            Permissions  =
-            {
-                Permissions.Endpoints.Token,
-                Permissions.GrantTypes.Password,
-                Permissions.GrantTypes.RefreshToken,
-                Permissions.Prefixes.Scope + "openid",
-                Permissions.Prefixes.Scope + "profile",
-                Permissions.Prefixes.Scope + "email",
-                Permissions.Prefixes.Scope + "offline_access",
-                Permissions.Prefixes.Scope + "healthbooking-api",
-                Permissions.Prefixes.Scope + "patient:read",
-                Permissions.Prefixes.Scope + "patient:write",
-                Permissions.Prefixes.Scope + "appointment:read",
-                Permissions.Prefixes.Scope + "appointment:write"
-            }
-        },
-
-        // Admin client — full access password flow
-        new OpenIddictApplicationDescriptor
-        {
-            ClientId     = "admin-client",
-            ClientSecret = "admin-client-secret",
-            DisplayName  = "Admin Client",
-            Permissions  =
+            DisplayName = "Admin Client",
+            Permissions =
             {
                 Permissions.Endpoints.Token,
                 Permissions.GrantTypes.Password,

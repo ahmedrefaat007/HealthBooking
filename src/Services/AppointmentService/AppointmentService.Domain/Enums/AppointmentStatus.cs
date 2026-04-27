@@ -18,9 +18,9 @@ namespace AppointmentService.Domain.Enums;
  */
 public enum AppointmentStatus
 {
-    Booked    = 0,  /* Initial state after booking saga completes. */
+    Booked = 0,  /* Initial state after booking saga completes. */
     Confirmed = 1,  /* Provider has confirmed the appointment. */
     Completed = 2,  /* Appointment successfully attended and closed. */
     Cancelled = 3,  /* Cancelled by patient or admin; slot released. */
-    NoShow    = 4   /* Patient did not show up for a Confirmed appointment. */
+    NoShow = 4   /* Patient did not show up for a Confirmed appointment. */
 }
