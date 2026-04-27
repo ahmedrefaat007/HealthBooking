@@ -17,6 +17,24 @@ using PatientService.Infrastructure.Persistence.Repositories;
 using PatientService.Infrastructure.Services;
 using Serilog;
 
+/*
+ * PatientService / Program.cs
+ * ----------------------------
+ * Bootstraps the PatientService microservice.
+ *
+ * WHO USES IT:
+ *   .NET runtime entry point; called by Docker Compose or the dotnet CLI.
+ *
+ * WHAT IS REGISTERED:
+ *   - SQL Server DbContext (PatientDbContext) with AuditInterceptor + OutboxPublishingInterceptor.
+ *   - PatientRepository, CurrentUserService.
+ *   - IdentityProvisioningClient HTTP client (Polly resilience).
+ *   - MediatR pipeline: ValidationBehavior.
+ *   - JWT Bearer validation (audience: patient-service).
+ *   - gRPC server: PatientGrpcService.
+ *   - OpenTelemetry tracing exported to Jaeger via OTLP.
+ *   - PII redaction: patient name/email/phone masked in Serilog destructuring.
+ */
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();

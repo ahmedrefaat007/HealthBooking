@@ -4,6 +4,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AppointmentService.Infrastructure.Persistence.Configurations;
 
+/*
+ * BookingStateConfiguration
+ * -------------------------
+ * EF Core Fluent API mapping for the MassTransit BookingState saga entity.
+ * Indexes CurrentState for fast MassTransit message routing queries and
+ * IdempotencyKey for duplicate-detection lookups.
+ *
+ * WHO USES IT:
+ *   AppointmentDbContext.OnModelCreating; MassTransit saga EF Core repository.
+ */
 public sealed class BookingStateConfiguration : IEntityTypeConfiguration<BookingState>
 {
     public void Configure(EntityTypeBuilder<BookingState> builder)

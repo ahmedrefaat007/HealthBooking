@@ -5,6 +5,22 @@ using System.Text.Json;
 
 namespace AppointmentService.Infrastructure.Persistence.Interceptors;
 
+/*
+ * OutboxPublishingInterceptor
+ * ---------------------------
+ * EF Core SaveChangesInterceptor that converts AggregateRoot domain events into
+ * OutboxMessage rows in the same database transaction.
+ *
+ * WHO USES IT:
+ *   AppointmentDbContext: registered via OnConfiguring.
+ *   OutboxProcessor: reads these rows and publishes them to RabbitMQ.
+ *
+ * WHY THIS APPROACH:
+ *   Writing domain events to the outbox in the same SaveChanges call as the
+ *   business entity change guarantees atomicity.  If the event is written but
+ *   the broker is down, OutboxProcessor retries until delivery succeeds
+ *   (at-least-once delivery without distributed transactions).
+ */
 public sealed class OutboxPublishingInterceptor : SaveChangesInterceptor
 {
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(

@@ -6,6 +6,16 @@ using PatientService.Domain.Entities;
 
 namespace PatientService.Infrastructure.Persistence.Configurations;
 
+/*
+ * PatientConfiguration
+ * --------------------
+ * EF Core Fluent API mapping for the Patient aggregate.
+ * Enforces a unique index on ContactEmail, column sizes, the date-type
+ * constraint on DateOfBirth, and audit columns.
+ *
+ * WHO USES IT:
+ *   PatientDbContext.OnModelCreating.
+ */
 public sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
 {
     public void Configure(EntityTypeBuilder<Patient> builder)

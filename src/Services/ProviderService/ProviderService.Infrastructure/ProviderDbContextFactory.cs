@@ -7,6 +7,18 @@ using ProviderService.Infrastructure.Services;
 
 namespace ProviderService.Infrastructure;
 
+/*
+ * ProviderDbContextFactory
+ * ------------------------
+ * IDesignTimeDbContextFactory used by EF Core CLI tools at design time.
+ *
+ * WHO USES IT:
+ *   EF Core tooling only (dotnet ef migrations add / dotnet ef database update).
+ *
+ * WHY THIS APPROACH:
+ *   Provides a fully configured DbContext—including AuditInterceptor and
+ *   OutboxPublishingInterceptor—so generated migrations match the runtime schema.
+ */
 public sealed class ProviderDbContextFactory : IDesignTimeDbContextFactory<ProviderDbContext>
 {
     public ProviderDbContext CreateDbContext(string[] args)

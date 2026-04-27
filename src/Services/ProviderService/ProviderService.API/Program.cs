@@ -17,6 +17,25 @@ using ProviderService.Infrastructure.Persistence.Repositories;
 using ProviderService.Infrastructure.Services;
 using Serilog;
 
+/*
+ * ProviderService / Program.cs
+ * -----------------------------
+ * Bootstraps the ProviderService microservice.
+ *
+ * WHO USES IT:
+ *   .NET runtime entry point; called by Docker Compose or the dotnet CLI.
+ *
+ * WHAT IS REGISTERED:
+ *   - SQL Server DbContext (ProviderDbContext) with AuditInterceptor + OutboxPublishingInterceptor.
+ *   - ProviderRepository, SlotRepository, CurrentUserService.
+ *   - Redis distributed cache (IDistributedCache) + RedisCacheService.
+ *   - MassTransit consumers: AppointmentBookedConsumer, SlotReleasedConsumer.
+ *   - MediatR pipeline: ValidationBehavior.
+ *   - JWT Bearer validation (audience: provider-service).
+ *   - gRPC server: ProviderGrpcService.
+ *   - OpenTelemetry tracing exported to Jaeger via OTLP.
+ *   - Health checks: SQL Server + Redis + RabbitMQ.
+ */
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();

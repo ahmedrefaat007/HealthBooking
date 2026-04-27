@@ -5,6 +5,21 @@ using ProviderService.Domain.Enums;
 
 namespace ProviderService.Infrastructure.Persistence.Configurations;
 
+/*
+ * ProviderConfiguration / AvailabilitySlotConfiguration
+ * -------------------------------------------------------
+ * EF Core Fluent API mappings for Provider and AvailabilitySlot.
+ *
+ * NOTABLE CONSTRAINTS:
+ *   - Unique index on LicenseNumber (one record per licensed provider).
+ *   - AvailabilitySlot: RowVersion for optimistic concurrency.
+ *   - CHECK constraint: DurationMinutes = 30 (fixed 30-minute slots).
+ *   - Partial unique index on (ProviderId, Date, StartTime) excluding Cancelled
+ *     slots to allow re-booking a cancelled time slot.
+ *
+ * WHO USES IT:
+ *   ProviderDbContext.OnModelCreating.
+ */
 public sealed class ProviderConfiguration : IEntityTypeConfiguration<Provider>
 {
     public void Configure(EntityTypeBuilder<Provider> builder)

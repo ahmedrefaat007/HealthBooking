@@ -4,6 +4,18 @@ using ProviderService.Application.Interfaces;
 
 namespace ProviderService.Infrastructure.Persistence.Interceptors;
 
+/*
+ * AuditInterceptor (ProviderService)
+ * -----------------------------------
+ * EF Core SaveChangesInterceptor that stamps audit fields on every write.
+ *
+ * WHO USES IT:
+ *   ProviderDbContext: registered via OnConfiguring.
+ *
+ * BEHAVIOUR:
+ *   Added entities  → sets CreatedAt + CreatedBy.
+ *   Modified entities → sets ModifiedAt + ModifiedBy; protects CreatedAt/CreatedBy.
+ */
 public sealed class AuditInterceptor(ICurrentUserService currentUser)
     : SaveChangesInterceptor
 {

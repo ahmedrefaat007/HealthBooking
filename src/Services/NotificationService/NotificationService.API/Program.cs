@@ -13,6 +13,24 @@ using HealthBooking.Contracts.Grpc;
 using HealthBooking.SharedKernel.Extensions;
 using Serilog;
 
+/*
+ * NotificationService / Program.cs
+ * ---------------------------------
+ * Bootstraps the NotificationService microservice.
+ *
+ * WHO USES IT:
+ *   .NET runtime entry point; called by Docker Compose or the dotnet CLI.
+ *
+ * WHAT IS REGISTERED:
+ *   - SQL Server DbContext (NotificationDbContext) with AuditInterceptor.
+ *   - NotificationLogRepository, LoggingEmailService (dev stub).
+ *   - gRPC client for PatientService to resolve patient emails (with Polly resilience).
+ *   - MassTransit consumers: AppointmentBooked, AppointmentCancelled,
+ *     AppointmentRescheduled — all idempotent.
+ *   - OpenTelemetry tracing exported to Jaeger via OTLP.
+ *   - Health checks: SQL Server + RabbitMQ.
+ *   - PII redaction: RecipientEmail masked in Serilog destructuring.
+ */
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();

@@ -6,6 +6,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AppointmentService.Infrastructure.Persistence.Configurations;
 
+/*
+ * AppointmentConfiguration
+ * ------------------------
+ * EF Core Fluent API mapping for the Appointment aggregate.
+ * Enforces column lengths, a CHECK constraint on Status, a unique index on SlotId
+ * (one slot per appointment), and shadow audit properties.
+ *
+ * WHO USES IT:
+ *   AppointmentDbContext.OnModelCreating.
+ */
 public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
 {
     public void Configure(EntityTypeBuilder<Appointment> builder)

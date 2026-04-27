@@ -4,6 +4,17 @@ using ProviderService.Application.Interfaces;
 
 namespace ProviderService.Application.Queries.GetProviderById;
 
+/*
+ * GetProviderByIdQuery
+ * --------------------
+ * MediatR read-only query returning a single ProviderDto by provider ID.
+ *
+ * WHO USES IT:
+ *   ProvidersEndpoints: GET /api/providers/{id}.
+ *
+ * WHY THIS APPROACH:
+ *   Returns null (instead of throwing) so the endpoint can return 404 cleanly.
+ */
 public sealed record GetProviderByIdQuery(Guid ProviderId) : IRequest<ProviderDto?>;
 
 public sealed class GetProviderByIdQueryHandler(IProviderRepository repository)

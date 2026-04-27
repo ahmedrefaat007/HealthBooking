@@ -5,6 +5,20 @@ using System.Text.Json;
 
 namespace ProviderService.Infrastructure.Persistence.Interceptors;
 
+/*
+ * OutboxPublishingInterceptor (ProviderService)
+ * ----------------------------------------------
+ * EF Core SaveChangesInterceptor that converts AggregateRoot domain events into
+ * OutboxMessage rows in the same database transaction.
+ *
+ * WHO USES IT:
+ *   ProviderDbContext: registered via OnConfiguring.
+ *
+ * WHY THIS APPROACH:
+ *   Atomically captures SlotLockedEvent, SlotReleasedEvent, ProviderRegisteredEvent,
+ *   etc. alongside the entity change so no event is lost if the broker is temporarily
+ *   unavailable.  A separate OutboxProcessor (or MassTransit outbox) publishes them.
+ */
 public sealed class OutboxPublishingInterceptor : SaveChangesInterceptor
 {
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(

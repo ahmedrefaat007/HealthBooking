@@ -8,6 +8,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AppointmentService.Infrastructure;
 
+/*
+ * AppointmentDbContextFactory
+ * ---------------------------
+ * IDesignTimeDbContextFactory used by EF Core CLI tools (dotnet ef migrations add,
+ * dotnet ef database update) at design time.
+ *
+ * WHO USES IT:
+ *   EF Core tooling only; never instantiated at runtime.
+ *
+ * WHY THIS APPROACH:
+ *   The design-time factory provides a fully configured DbContext—including
+ *   AuditInterceptor and OutboxPublishingInterceptor—so migrations reflect the
+ *   exact same schema that the runtime context produces.
+ */
 public sealed class AppointmentDbContextFactory : IDesignTimeDbContextFactory<AppointmentDbContext>
 {
     public AppointmentDbContext CreateDbContext(string[] args)

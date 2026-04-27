@@ -4,6 +4,20 @@ using ProviderService.Application.Interfaces;
 
 namespace ProviderService.Application.Queries.GetProviderSlots;
 
+/*
+ * GetProviderSlotsQuery
+ * ---------------------
+ * MediatR read-only query returning all available slots for a provider.
+ *
+ * WHO USES IT:
+ *   ProvidersEndpoints: GET /api/providers/{id}/slots.
+ *   AppointmentsEndpoints (indirectly): patients browse slots before booking.
+ *
+ * CACHING:
+ *   Results are cached in Redis for 60 seconds (TTL) under the key "slots:{providerId}".
+ *   Cache is invalidated by AppointmentBookedConsumer and SlotReleasedConsumer
+ *   when slot status changes.
+ */
 public sealed record GetProviderSlotsQuery(Guid ProviderId) : IRequest<IReadOnlyList<SlotDto>>;
 
 public sealed class GetProviderSlotsQueryHandler(

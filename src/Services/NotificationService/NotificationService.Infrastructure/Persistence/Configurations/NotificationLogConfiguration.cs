@@ -4,6 +4,16 @@ using NotificationService.Domain.Entities;
 
 namespace NotificationService.Infrastructure.Persistence.Configurations;
 
+/*
+ * NotificationLogConfiguration
+ * ----------------------------
+ * EF Core Fluent API mapping for the NotificationLog entity.
+ * Enforces the unique composite index on (CorrelationId, EventType) that
+ * backs the idempotency guard in ExistsByCorrelationAndTypeAsync.
+ *
+ * WHO USES IT:
+ *   NotificationDbContext.OnModelCreating.
+ */
 public sealed class NotificationLogConfiguration : IEntityTypeConfiguration<NotificationLog>
 {
     public void Configure(EntityTypeBuilder<NotificationLog> builder)

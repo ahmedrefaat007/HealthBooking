@@ -21,6 +21,26 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
+/*
+ * AppointmentService / Program.cs
+ * --------------------------------
+ * Bootstraps the AppointmentService microservice.
+ *
+ * WHO USES IT:
+ *   .NET runtime entry point; called by Docker Compose or the dotnet CLI.
+ *
+ * WHAT IS REGISTERED:
+ *   - SQL Server DbContext (AppointmentDbContext) with AuditInterceptor + OutboxPublishingInterceptor.
+ *   - AppointmentRepository, IdempotencyRepository, CurrentUserService.
+ *   - gRPC clients for PatientService + ProviderService (with Polly resilience).
+ *   - MassTransit + BookingStateMachine (EF Core optimistic-concurrency saga repo).
+ *   - Saga activities (VerifyPatient, LockSlot, PersistAppointment) as transient.
+ *   - OutboxProcessor hosted service (polls every 5 s).
+ *   - MediatR pipeline: ValidationBehavior only (logging/perf in SharedKernel if needed).
+ *   - JWT Bearer validation (audience: appointment-service).
+ *   - OpenTelemetry tracing exported to Jaeger via OTLP.
+ *   - Health checks: SQL Server + RabbitMQ.
+ */
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();

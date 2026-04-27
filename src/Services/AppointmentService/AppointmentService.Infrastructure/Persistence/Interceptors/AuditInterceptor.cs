@@ -4,6 +4,24 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace AppointmentService.Infrastructure.Persistence.Interceptors;
 
+/*
+ * AuditInterceptor
+ * ----------------
+ * EF Core SaveChangesInterceptor that stamps audit fields on every write.
+ *
+ * WHO USES IT:
+ *   AppointmentDbContext: registered via OnConfiguring.
+ *
+ * BEHAVIOUR:
+ *   Added entities  → sets CreatedAt + CreatedBy.
+ *   Modified entities → sets ModifiedAt + ModifiedBy; protects CreatedAt/CreatedBy
+ *   from being overwritten.
+ *
+ * WHY THIS APPROACH:
+ *   Centralising audit stamping in an interceptor keeps domain entities free of
+ *   infrastructure concerns.  The ICurrentUserService provides the user ID from
+ *   the current HTTP request without coupling the entity to HttpContext.
+ */
 public sealed class AuditInterceptor(ICurrentUserService currentUser)
     : SaveChangesInterceptor
 {
